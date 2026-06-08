@@ -249,6 +249,27 @@
     </div>
   </section>
 
+  <!-- GALLERY -->
+  <section class="mr-gallery" id="gallery">
+    <div class="mr-section-header">
+      <div>
+        <div class="mr-eyebrow">The Gallery</div>
+        <h2 class="mr-h2" style="margin-bottom:0;">A few of our <em>favorites</em></h2>
+      </div>
+      <button class="mr-btn-soft" style="font-size:13.5px;padding:11px 24px;" data-open-form>Commission Something Like This →</button>
+    </div>
+    <div class="mr-gallery-grid" id="mr-gallery-grid">
+      <button class="mr-gallery-tile mr-gtile-tall" style="background:linear-gradient(160deg,#fce7f3,#f5d0fe);" data-emoji="🦌" data-caption="Custom holiday reindeer in blush & lilac">🦌</button>
+      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#e0f2fe,#bae6fd);" data-emoji="💳" data-caption="Ocean-swirl phone & cardholder">💳</button>
+      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fef9c3,#fde68a);" data-emoji="🐝" data-caption="Honeybee figurine, hand-finished">🐝</button>
+      <button class="mr-gallery-tile mr-gtile-wide" style="background:linear-gradient(160deg,#d1fae5,#a7f3d0);" data-emoji="🌿" data-caption="Marbled mini planter trio">🌿</button>
+      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fce7f3,#ede9fe);" data-emoji="🩷" data-caption="Baby footprint heart ornament">🩷</button>
+      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fef3c7,#fed7aa);" data-emoji="🗝️" data-caption="Initial keychains, made to order">🗝️</button>
+      <button class="mr-gallery-tile mr-gtile-tall" style="background:linear-gradient(160deg,#ede9fe,#ddd6fe);" data-emoji="⭐" data-caption="Galaxy star décor accent">⭐</button>
+      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#ffe4e6,#fecdd3);" data-emoji="🐄" data-caption="Spotted cow figurine — a customer favorite">🐄</button>
+    </div>
+  </section>
+
   <!-- COMMISSIONS -->
   <section class="mr-commissions" id="commissions">
     <div class="mr-comm-left">
@@ -447,6 +468,21 @@
         <button class="mr-btn-soft" data-form-close>Close</button>
       </div>
     </div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="mr-lightbox" id="mr-lightbox" aria-hidden="true">
+    <div class="mr-modal-backdrop" data-lb-close></div>
+    <button class="mr-modal-close mr-lb-close" data-lb-close aria-label="Close">✕</button>
+    <button class="mr-lb-nav mr-lb-prev" id="mr-lb-prev" aria-label="Previous">‹</button>
+    <div class="mr-lb-stage" role="dialog" aria-modal="true" aria-label="Gallery image">
+      <div class="mr-lb-media" id="mr-lb-media">🎨</div>
+      <div class="mr-lb-bar">
+        <div class="mr-lb-caption" id="mr-lb-caption"></div>
+        <div class="mr-lb-count" id="mr-lb-count"></div>
+      </div>
+    </div>
+    <button class="mr-lb-nav mr-lb-next" id="mr-lb-next" aria-label="Next">›</button>
   </div>
 
   <!-- BACK TO TOP -->

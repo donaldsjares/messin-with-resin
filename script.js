@@ -53,11 +53,67 @@
     prodEmpty: document.getElementById('mr-prod-empty'),
     formModal: document.getElementById('mr-form-modal'),
     form: document.getElementById('mr-form'),
-    formSuccess: document.getElementById('mr-form-success')
+    formSuccess: document.getElementById('mr-form-success'),
+    lightbox: document.getElementById('mr-lightbox'),
+    lbMedia: document.getElementById('mr-lb-media'),
+    lbCaption: document.getElementById('mr-lb-caption'),
+    lbCount: document.getElementById('mr-lb-count'),
+    lbPrev: document.getElementById('mr-lb-prev'),
+    lbNext: document.getElementById('mr-lb-next')
   };
 
   var modalItem = null;
   var modalQty = 1;
+  var galleryItems = [];
+  var lbIndex = 0;
+
+  /* ── Accessibility: scroll lock + focus trap ──
+   * Overlays push onto a stack so focus is trapped in the topmost one and
+   * restored to the triggering element on close; body scroll locks while
+   * anything is open. */
+  var trapStack = [];
+
+  function activateTrap(container) {
+    trapStack.push({ container: container, prevFocus: document.activeElement });
+    document.body.classList.add('mr-no-scroll');
+  }
+
+  function deactivateTrap(container) {
+    for (var i = trapStack.length - 1; i >= 0; i--) {
+      if (trapStack[i].container === container) {
+        var entry = trapStack.splice(i, 1)[0];
+        if (entry.prevFocus && typeof entry.prevFocus.focus === 'function') {
+          entry.prevFocus.focus();
+        }
+        break;
+      }
+    }
+    if (trapStack.length === 0) document.body.classList.remove('mr-no-scroll');
+  }
+
+  function focusables(container) {
+    var sel = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+      'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.prototype.filter.call(container.querySelectorAll(sel), function (el) {
+      return el.offsetParent !== null; // visible
+    });
+  }
+
+  function handleTrapTab(e) {
+    if (e.key !== 'Tab' || !trapStack.length) return;
+    var container = trapStack[trapStack.length - 1].container;
+    var items = focusables(container);
+    if (!items.length) return;
+    var first = items[0];
+    var last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 
   /* ── Cart operations ── */
   function addToCart(item, qty) {
@@ -164,12 +220,16 @@
     showOverlay();
     els.drawer.classList.add('is-open');
     els.drawer.setAttribute('aria-hidden', 'false');
+    activateTrap(els.drawer);
+    els.cartClose.focus();
   }
 
   function closeDrawer() {
+    if (!els.drawer.classList.contains('is-open')) return;
     els.drawer.classList.remove('is-open');
     els.drawer.setAttribute('aria-hidden', 'true');
     maybeHideOverlay();
+    deactivateTrap(els.drawer);
   }
 
   function showOverlay() {
@@ -196,14 +256,17 @@
       els.hamburger.classList.add('is-open');
       els.hamburger.setAttribute('aria-expanded', 'true');
       showOverlay();
+      activateTrap(els.nav);
     }
   }
 
   function closeMenu() {
+    if (!els.navLinks.classList.contains('is-open')) return;
     els.navLinks.classList.remove('is-open');
     els.hamburger.classList.remove('is-open');
     els.hamburger.setAttribute('aria-expanded', 'false');
     maybeHideOverlay();
+    deactivateTrap(els.nav);
   }
 
   /* ── Smooth scroll ── */
@@ -254,12 +317,16 @@
 
     els.modal.classList.add('is-open');
     els.modal.setAttribute('aria-hidden', 'false');
+    activateTrap(els.modal);
+    els.modalAdd.focus();
   }
 
   function closeModal() {
+    if (!els.modal.classList.contains('is-open')) return;
     els.modal.classList.remove('is-open');
     els.modal.setAttribute('aria-hidden', 'true');
     modalItem = null;
+    deactivateTrap(els.modal);
   }
 
   function setModalQty(delta) {
@@ -299,7 +366,7 @@
 
   /* ── Scrollspy + nav shadow + back-to-top ── */
   function setupScrollWatchers() {
-    var sections = ['#shop', '#commissions', '#about', '#contact']
+    var sections = ['#shop', '#gallery', '#commissions', '#about', '#contact']
       .map(function (id) {
         var el = document.querySelector(id);
         return el ? { id: id, el: el } : null;
@@ -368,6 +435,7 @@
     resetForm();
     els.formModal.classList.add('is-open');
     els.formModal.setAttribute('aria-hidden', 'false');
+    activateTrap(els.formModal);
     setTimeout(function () {
       var first = els.form.querySelector('input');
       if (first) first.focus();
@@ -375,8 +443,10 @@
   }
 
   function closeForm() {
+    if (!els.formModal.classList.contains('is-open')) return;
     els.formModal.classList.remove('is-open');
     els.formModal.setAttribute('aria-hidden', 'true');
+    deactivateTrap(els.formModal);
   }
 
   function resetForm() {
@@ -439,6 +509,54 @@
     toast('🩷', 'Request sent — we\'ll be in touch!');
   }
 
+  /* ── Gallery lightbox ── */
+  function setupLightbox() {
+    var tiles = document.querySelectorAll('.mr-gallery-tile');
+    if (!tiles.length) return;
+
+    galleryItems = Array.prototype.map.call(tiles, function (t) {
+      return { emoji: t.dataset.emoji, caption: t.dataset.caption, bg: t.style.background };
+    });
+
+    tiles.forEach(function (t, i) {
+      t.addEventListener('click', function () { openLightbox(i); });
+    });
+    els.lbPrev.addEventListener('click', function () { lbStep(-1); });
+    els.lbNext.addEventListener('click', function () { lbStep(1); });
+    els.lightbox.querySelectorAll('[data-lb-close]').forEach(function (el) {
+      el.addEventListener('click', closeLightbox);
+    });
+  }
+
+  function openLightbox(i) {
+    lbIndex = i;
+    renderLightbox();
+    els.lightbox.classList.add('is-open');
+    els.lightbox.setAttribute('aria-hidden', 'false');
+    activateTrap(els.lightbox);
+    els.lbNext.focus();
+  }
+
+  function closeLightbox() {
+    if (!els.lightbox.classList.contains('is-open')) return;
+    els.lightbox.classList.remove('is-open');
+    els.lightbox.setAttribute('aria-hidden', 'true');
+    deactivateTrap(els.lightbox);
+  }
+
+  function lbStep(delta) {
+    lbIndex = (lbIndex + delta + galleryItems.length) % galleryItems.length;
+    renderLightbox();
+  }
+
+  function renderLightbox() {
+    var item = galleryItems[lbIndex];
+    els.lbMedia.textContent = item.emoji;
+    els.lbMedia.style.background = item.bg;
+    els.lbCaption.textContent = item.caption;
+    els.lbCount.textContent = (lbIndex + 1) + ' / ' + galleryItems.length;
+  }
+
   /* ── Wire up events ── */
   function init() {
     // Add-to-cart buttons (stop propagation so the card's quick-view doesn't open)
@@ -493,6 +611,9 @@
     // Product category filters
     setupFilters();
 
+    // Gallery lightbox
+    setupLightbox();
+
     // Cart open/close
     els.cartToggle.addEventListener('click', openDrawer);
     els.cartClose.addEventListener('click', closeDrawer);
@@ -503,9 +624,15 @@
       closeMenu();
     });
 
-    // Escape key
+    // Keyboard: Escape closes overlays, arrows page the lightbox, Tab traps focus
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeDrawer(); closeMenu(); closeModal(); closeForm(); }
+      if (e.key === 'Escape') {
+        closeDrawer(); closeMenu(); closeModal(); closeForm(); closeLightbox();
+      } else if (els.lightbox.classList.contains('is-open')) {
+        if (e.key === 'ArrowLeft') lbStep(-1);
+        else if (e.key === 'ArrowRight') lbStep(1);
+      }
+      handleTrapTab(e);
     });
 
     // Hamburger
