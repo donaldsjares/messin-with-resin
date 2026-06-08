@@ -33,7 +33,11 @@
     cartItems: document.getElementById('mr-cart-items'),
     cartEmpty: document.getElementById('mr-cart-empty'),
     cartFoot: document.getElementById('mr-cart-foot'),
+    cartClear: document.getElementById('mr-cart-clear'),
     checkout: document.getElementById('mr-cart-checkout'),
+    shipWrap: document.querySelector('.mr-ship'),
+    shipMsg: document.querySelector('[data-ship-msg]'),
+    shipFill: document.querySelector('[data-ship-fill]'),
     hamburger: document.getElementById('mr-hamburger'),
     navLinks: document.getElementById('mr-nav-links'),
     toasts: document.getElementById('mr-toasts'),
@@ -142,6 +146,31 @@
     renderCart();
   }
 
+  function clearCart() {
+    if (cartCount() === 0) return;
+    var snapshot = JSON.stringify(cart);
+    cart = {};
+    saveCart();
+    renderCart();
+    toast('🧹', 'Cart cleared', { label: 'Undo', fn: function () {
+      cart = JSON.parse(snapshot);
+      saveCart();
+      renderCart();
+    } });
+  }
+
+  /* Add an item, then return a function that reverses exactly this add. */
+  function addWithUndo(item, qty, message) {
+    var prev = cart[item.id] ? cart[item.id].qty : null;
+    addToCart(item, qty);
+    toast(item.emoji, message, { label: 'Undo', fn: function () {
+      if (prev === null) delete cart[item.id];
+      else cart[item.id].qty = prev;
+      saveCart();
+      renderCart();
+    } });
+  }
+
   function cartCount() {
     return Object.keys(cart).reduce(function (n, id) { return n + cart[id].qty; }, 0);
   }
@@ -175,8 +204,23 @@
       els.cartItems.appendChild(renderItem(id, cart[id]));
     });
 
+    var total = cartTotal();
     var totalEl = document.querySelector('[data-cart-total]');
-    if (totalEl) totalEl.textContent = formatPrice(cartTotal());
+    if (totalEl) totalEl.textContent = formatPrice(total);
+    updateShipping(total);
+  }
+
+  function updateShipping(total) {
+    if (!els.shipWrap) return;
+    var remaining = FREE_SHIPPING_THRESHOLD - total;
+    els.shipFill.style.width = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100) + '%';
+    if (remaining <= 0) {
+      els.shipWrap.classList.add('is-unlocked');
+      els.shipMsg.innerHTML = '🎉 You\'ve unlocked <em>free shipping!</em>';
+    } else {
+      els.shipWrap.classList.remove('is-unlocked');
+      els.shipMsg.innerHTML = 'You\'re <em>' + formatPrice(remaining) + '</em> away from free shipping!';
+    }
   }
 
   function renderItem(id, item) {
@@ -279,16 +323,30 @@
   }
 
   /* ── Toasts ── */
-  function toast(emoji, message) {
+  function toast(emoji, message, action) {
     var t = document.createElement('div');
     t.className = 'mr-toast';
     t.innerHTML = '<span class="mr-toast-emoji">' + emoji + '</span><span>' + escapeHtml(message) + '</span>';
-    els.toasts.appendChild(t);
-    requestAnimationFrame(function () { t.classList.add('is-visible'); });
-    setTimeout(function () {
+
+    var timer;
+    function dismiss() {
+      clearTimeout(timer);
       t.classList.remove('is-visible');
       setTimeout(function () { t.remove(); }, 280);
-    }, 2400);
+    }
+
+    if (action) {
+      var btn = document.createElement('button');
+      btn.className = 'mr-toast-action';
+      btn.type = 'button';
+      btn.textContent = action.label;
+      btn.addEventListener('click', function () { action.fn(); dismiss(); });
+      t.appendChild(btn);
+    }
+
+    els.toasts.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('is-visible'); });
+    timer = setTimeout(dismiss, action ? 5000 : 2400);
   }
 
   function bumpCartIcon() {
@@ -569,8 +627,7 @@
           price: parseFloat(btn.dataset.price),
           emoji: btn.dataset.emoji || '🎨'
         };
-        addToCart(item);
-        toast(item.emoji, item.name + ' added to cart');
+        addWithUndo(item, 1, item.name + ' added to cart');
       });
     });
 
@@ -586,9 +643,8 @@
       if (!modalItem) return;
       var added = modalQty;
       var item = modalItem;
-      addToCart(item, added);
       closeModal();
-      toast(item.emoji, added + '× ' + item.name + ' added to cart');
+      addWithUndo(item, added, added + '× ' + item.name + ' added to cart');
     });
     els.modal.querySelectorAll('[data-modal-close]').forEach(function (el) {
       el.addEventListener('click', closeModal);
@@ -617,6 +673,7 @@
     // Cart open/close
     els.cartToggle.addEventListener('click', openDrawer);
     els.cartClose.addEventListener('click', closeDrawer);
+    els.cartClear.addEventListener('click', clearCart);
 
     // Overlay click closes whatever is open
     els.overlay.addEventListener('click', function () {
