@@ -234,7 +234,14 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-cart-close { background: none; border: none; font-size: 16px; color: var(--ink-mid); cursor: pointer; width: 32px; height: 32px; border-radius: 50%; transition: background 0.15s; }
 .mr-cart-close:hover { background: var(--rose-pale); color: var(--rose-deep); }
 .mr-cart-items { flex: 1; overflow-y: auto; padding: 8px 24px; }
-.mr-cart-item { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+.mr-cart-item { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); overflow: hidden; max-height: 260px; transition: opacity 0.28s ease, transform 0.28s ease, max-height 0.28s ease, padding 0.28s ease; }
+.mr-cart-item.is-removing { opacity: 0; transform: translateX(28px); max-height: 0; padding-top: 0; padding-bottom: 0; }
+.mr-cart-item--enter { animation: mr-item-enter 0.35s ease; }
+@keyframes mr-item-enter { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .mr-cart-item { transition: none; }
+  .mr-cart-item--enter { animation: none; }
+}
 .mr-cart-item-img { width: 56px; height: 56px; border-radius: 14px; background: var(--rose-pale); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
 .mr-cart-item-mid { flex: 1; min-width: 0; }
 .mr-cart-item-name { font-size: 13.5px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
@@ -327,6 +334,8 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-qty-lg .mr-qty-val { min-width: 34px; font-size: 14px; }
 .mr-modal-add { padding: 13px 28px; flex: 1; }
 .mr-modal-note { font-size: 12px; color: var(--ink-light); }
+.mr-modal-share { margin-top: 14px; background: none; border: none; padding: 0; color: var(--ink-mid); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: color 0.15s; }
+.mr-modal-share:hover { color: var(--rose); }
 
 /* ── PRODUCT FILTERS ── */
 .mr-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }

@@ -96,6 +96,7 @@
     modalDec: document.getElementById('mr-modal-dec'),
     modalInc: document.getElementById('mr-modal-inc'),
     modalAdd: document.getElementById('mr-modal-add'),
+    modalShare: document.getElementById('mr-modal-share'),
     filters: document.getElementById('mr-filters'),
     prodEmpty: document.getElementById('mr-prod-empty'),
     formModal: document.getElementById('mr-form-modal'),
@@ -167,30 +168,56 @@
   }
 
   /* ── Cart operations ── */
+  var enterId = null; // id of a just-added item, for the entrance animation
+
   function addToCart(item, qty) {
     qty = qty || 1;
     if (cart[item.id]) {
       cart[item.id].qty += qty;
     } else {
       cart[item.id] = { name: item.name, price: item.price, emoji: item.emoji, qty: qty };
+      enterId = item.id;
     }
     saveCart();
     renderCart();
+    enterId = null;
     bumpCartIcon();
   }
 
   function changeQty(id, delta) {
     if (!cart[id]) return;
+    if (cart[id].qty + delta <= 0) { removeItem(id); return; }
     cart[id].qty += delta;
-    if (cart[id].qty <= 0) delete cart[id];
     saveCart();
     renderCart();
   }
 
   function removeItem(id) {
+    var row = rowFor(id);
+    if (row && !prefersReducedMotion()) {
+      row.classList.add('is-removing');
+      setTimeout(function () { commitRemove(id); }, 280);
+    } else {
+      commitRemove(id);
+    }
+  }
+
+  function commitRemove(id) {
     delete cart[id];
     saveCart();
     renderCart();
+  }
+
+  function rowFor(id) {
+    var rows = els.cartItems.children;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].dataset.id === id) return rows[i];
+    }
+    return null;
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   function clearCart() {
@@ -334,7 +361,8 @@
 
   function renderItem(id, item) {
     var row = document.createElement('div');
-    row.className = 'mr-cart-item';
+    row.className = 'mr-cart-item' + (id === enterId ? ' mr-cart-item--enter' : '');
+    row.dataset.id = id;
     row.innerHTML =
       '<div class="mr-cart-item-img">' + item.emoji + '</div>' +
       '<div class="mr-cart-item-mid">' +
@@ -505,6 +533,26 @@
   function setModalQty(delta) {
     modalQty = Math.max(1, modalQty + delta);
     els.modalQty.textContent = modalQty;
+  }
+
+  function shareProduct() {
+    if (!modalItem) return;
+    var url = location.origin + location.pathname + '#shop';
+    var data = {
+      title: modalItem.name + ' · Messin With Resin',
+      text: 'Check out the ' + modalItem.name + ' from Messin With Resin!',
+      url: url
+    };
+    if (navigator.share) {
+      navigator.share(data).catch(function () { /* user cancelled */ });
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(data.text + ' ' + url).then(
+        function () { toast('🔗', 'Link copied to clipboard'); },
+        function () { toast('🔗', 'Could not copy the link'); }
+      );
+    } else {
+      toast('🔗', 'Share: ' + url);
+    }
   }
 
   function text(scope, sel) {
@@ -756,6 +804,7 @@
     // Modal controls
     els.modalDec.addEventListener('click', function () { setModalQty(-1); });
     els.modalInc.addEventListener('click', function () { setModalQty(1); });
+    els.modalShare.addEventListener('click', shareProduct);
     els.modalAdd.addEventListener('click', function () {
       if (!modalItem) return;
       var added = modalQty;
