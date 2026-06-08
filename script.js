@@ -5,10 +5,53 @@
   'use strict';
 
   var STORAGE_KEY = 'mwr-cart-v1';
+  var RECENT_KEY = 'mwr-recent-v1';
   var FREE_SHIPPING_THRESHOLD = 50;
+  var TOAST_CAP = 3;       // max toasts visible at once
+  var RECENT_MAX = 8;      // recently-viewed items kept
+  var REC_MAX = 3;         // cart recommendations shown
 
   /* ── State ── */
   var cart = loadCart(); // { id: { name, price, emoji, qty } }
+  var catalog = [];      // [{ id, name, price, emoji, category, desc }]
+  var recent = loadRecent(); // array of product ids, most-recent first
+
+  function loadRecent() {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRecent() {
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+    } catch (e) { /* storage unavailable */ }
+  }
+
+  function buildCatalog() {
+    document.querySelectorAll('.mr-prod-card').forEach(function (card) {
+      var btn = card.querySelector('.mr-prod-add');
+      var img = card.querySelector('.mr-prod-img');
+      catalog.push({
+        id: btn.dataset.name,
+        name: btn.dataset.name,
+        price: parseFloat(btn.dataset.price),
+        emoji: btn.dataset.emoji || '🎨',
+        category: card.dataset.category || '',
+        desc: text(card, '.mr-prod-desc'),
+        bg: img ? img.style.background : ''
+      });
+    });
+  }
+
+  function findProduct(id) {
+    for (var i = 0; i < catalog.length; i++) {
+      if (catalog[i].id === id) return catalog[i];
+    }
+    return null;
+  }
 
   function loadCart() {
     try {
@@ -63,7 +106,11 @@
     lbCaption: document.getElementById('mr-lb-caption'),
     lbCount: document.getElementById('mr-lb-count'),
     lbPrev: document.getElementById('mr-lb-prev'),
-    lbNext: document.getElementById('mr-lb-next')
+    lbNext: document.getElementById('mr-lb-next'),
+    cartRecs: document.getElementById('mr-cart-recs'),
+    cartRecsList: document.getElementById('mr-cart-recs-list'),
+    recentSection: document.getElementById('mr-recent'),
+    recentStrip: document.getElementById('mr-recent-strip')
   };
 
   var modalItem = null;
@@ -208,6 +255,68 @@
     var totalEl = document.querySelector('[data-cart-total]');
     if (totalEl) totalEl.textContent = formatPrice(total);
     updateShipping(total);
+    renderRecs(isEmpty);
+  }
+
+  /* ── Cart recommendations ── */
+  function renderRecs(cartEmpty) {
+    if (!els.cartRecs) return;
+    var picks = [];
+    for (var i = 0; i < catalog.length && picks.length < REC_MAX; i++) {
+      if (!cart[catalog[i].id]) picks.push(catalog[i]);
+    }
+    if (cartEmpty || picks.length === 0) {
+      els.cartRecs.hidden = true;
+      return;
+    }
+    els.cartRecs.hidden = false;
+    els.cartRecsList.innerHTML = '';
+    picks.forEach(function (p) {
+      var row = document.createElement('div');
+      row.className = 'mr-rec';
+      row.innerHTML =
+        '<div class="mr-rec-img">' + p.emoji + '</div>' +
+        '<div class="mr-rec-mid">' +
+          '<div class="mr-rec-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="mr-rec-price">From ' + formatPrice(p.price) + '</div>' +
+        '</div>' +
+        '<button type="button" class="mr-rec-add" aria-label="Add ' + escapeHtml(p.name) + ' to cart">+</button>';
+      row.querySelector('.mr-rec-add').addEventListener('click', function () {
+        addWithUndo({ id: p.id, name: p.name, price: p.price, emoji: p.emoji }, 1, p.name + ' added to cart');
+      });
+      els.cartRecsList.appendChild(row);
+    });
+  }
+
+  /* ── Recently viewed ── */
+  function recordRecentlyViewed(id) {
+    recent = recent.filter(function (x) { return x !== id; });
+    recent.unshift(id);
+    recent = recent.slice(0, RECENT_MAX);
+    saveRecent();
+    renderRecentlyViewed();
+  }
+
+  function renderRecentlyViewed() {
+    if (!els.recentSection) return;
+    var items = recent.map(findProduct).filter(Boolean);
+    if (items.length === 0) {
+      els.recentSection.hidden = true;
+      return;
+    }
+    els.recentSection.hidden = false;
+    els.recentStrip.innerHTML = '';
+    items.forEach(function (p) {
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'mr-recent-card';
+      card.innerHTML =
+        '<div class="mr-recent-thumb" style="background:' + (p.bg || 'var(--cream-mid)') + '">' + p.emoji + '</div>' +
+        '<div class="mr-recent-name">' + escapeHtml(p.name) + '</div>' +
+        '<div class="mr-recent-price">From ' + formatPrice(p.price) + '</div>';
+      card.addEventListener('click', function () { openModalForProduct(p); });
+      els.recentStrip.appendChild(card);
+    });
   }
 
   function updateShipping(total) {
@@ -345,6 +454,10 @@
     }
 
     els.toasts.appendChild(t);
+    // Cap the stack: drop the oldest toasts beyond the limit immediately.
+    while (els.toasts.children.length > TOAST_CAP) {
+      els.toasts.removeChild(els.toasts.firstChild);
+    }
     requestAnimationFrame(function () { t.classList.add('is-visible'); });
     timer = setTimeout(dismiss, action ? 5000 : 2400);
   }
@@ -358,20 +471,22 @@
   /* ── Quick-view modal ── */
   function openModal(card) {
     var btn = card.querySelector('.mr-prod-add');
-    modalItem = {
-      id: btn.dataset.name,
-      name: btn.dataset.name,
-      price: parseFloat(btn.dataset.price),
-      emoji: btn.dataset.emoji || '🎨'
-    };
+    var p = findProduct(btn.dataset.name);
+    if (p) openModalForProduct(p);
+  }
+
+  function openModalForProduct(p) {
+    modalItem = { id: p.id, name: p.name, price: p.price, emoji: p.emoji };
     modalQty = 1;
 
-    els.modalMedia.textContent = modalItem.emoji;
-    els.modalCat.textContent = text(card, '.mr-prod-cat');
-    els.modalName.textContent = modalItem.name;
-    els.modalPrice.textContent = 'From ' + formatPrice(modalItem.price);
-    els.modalDesc.textContent = text(card, '.mr-prod-desc');
+    els.modalMedia.textContent = p.emoji;
+    els.modalCat.textContent = p.category;
+    els.modalName.textContent = p.name;
+    els.modalPrice.textContent = 'From ' + formatPrice(p.price);
+    els.modalDesc.textContent = p.desc;
     els.modalQty.textContent = modalQty;
+
+    recordRecentlyViewed(p.id);
 
     els.modal.classList.add('is-open');
     els.modal.setAttribute('aria-hidden', 'false');
@@ -617,6 +732,8 @@
 
   /* ── Wire up events ── */
   function init() {
+    buildCatalog();
+
     // Add-to-cart buttons (stop propagation so the card's quick-view doesn't open)
     document.querySelectorAll('.mr-prod-add').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -723,6 +840,7 @@
     });
 
     renderCart();
+    renderRecentlyViewed();
     setupReveal();
     setupScrollWatchers();
   }

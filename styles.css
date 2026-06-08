@@ -266,6 +266,29 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-ship-fill { height: 100%; width: 0; border-radius: 100px; background: linear-gradient(90deg, var(--rose-light), var(--rose)); transition: width 0.4s cubic-bezier(0.22,1,0.36,1); }
 .mr-ship.is-unlocked .mr-ship-fill { background: linear-gradient(90deg, #34d399, #10b981); }
 
+/* ── CART RECOMMENDATIONS ── */
+.mr-cart-recs { padding: 18px 24px 8px; border-top: 1px solid var(--border); }
+.mr-cart-recs[hidden] { display: none; }
+.mr-cart-recs-title { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 14px; }
+.mr-cart-recs-list { display: flex; flex-direction: column; gap: 10px; }
+.mr-rec { display: flex; align-items: center; gap: 12px; }
+.mr-rec-img { width: 42px; height: 42px; border-radius: 11px; background: var(--rose-pale); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.mr-rec-mid { flex: 1; min-width: 0; }
+.mr-rec-name { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-rec-price { font-size: 11.5px; color: var(--rose); font-weight: 600; }
+.mr-rec-add { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--rose-pale); color: var(--rose-deep); font-size: 16px; line-height: 1; cursor: pointer; flex-shrink: 0; transition: background 0.15s, color 0.15s; }
+.mr-rec-add:hover { background: var(--rose); color: #fff; }
+
+/* ── RECENTLY VIEWED ── */
+.mr-recent { background: #fff; padding: 40px 56px; border-bottom: 1px solid var(--border); }
+.mr-recent[hidden] { display: none; }
+.mr-recent-strip { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.mr-recent-card { flex: 0 0 auto; width: 150px; background: var(--cream); border: 1px solid var(--border); border-radius: 16px; padding: 16px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; }
+.mr-recent-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(214,63,122,0.1); }
+.mr-recent-thumb { width: 100%; height: 72px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 12px; }
+.mr-recent-name { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-recent-price { font-size: 12px; color: var(--rose); font-weight: 700; }
+
 /* ── TOASTS ── */
 .mr-toasts { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
 .mr-toast { background: var(--ink); color: #fff9f5; font-size: 13px; font-weight: 500; padding: 12px 20px; border-radius: 100px; box-shadow: 0 8px 28px rgba(28,10,10,0.3); display: flex; align-items: center; gap: 9px; opacity: 0; transform: translateY(12px); transition: opacity 0.25s, transform 0.25s; }
@@ -373,6 +396,7 @@ body.mr-no-scroll { overflow: hidden; }
   .mr-contact { grid-template-columns: 1fr; gap: 32px; padding: 64px 40px; }
   .mr-contact-btns { flex-direction: row; flex-wrap: wrap; }
   .mr-products, .mr-reviews, .mr-gallery { padding: 64px 32px; }
+  .mr-recent { padding: 36px 32px; }
   .mr-gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 170px; }
   .mr-lb-prev { margin-right: 12px; }
   .mr-lb-next { margin-left: 12px; }
@@ -395,6 +419,7 @@ body.mr-no-scroll { overflow: hidden; }
   .mr-footer-top { grid-template-columns: 1fr; }
   .mr-footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
   .mr-products, .mr-reviews, .mr-gallery { padding: 56px 24px; }
+  .mr-recent { padding: 32px 24px; }
   .mr-gallery { padding-bottom: 56px; }
   .mr-lightbox { padding: 16px; }
   .mr-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; margin: 0; }
