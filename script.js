@@ -36,15 +36,31 @@
     checkout: document.getElementById('mr-cart-checkout'),
     hamburger: document.getElementById('mr-hamburger'),
     navLinks: document.getElementById('mr-nav-links'),
-    toasts: document.getElementById('mr-toasts')
+    toasts: document.getElementById('mr-toasts'),
+    nav: document.querySelector('.mr-nav'),
+    toTop: document.getElementById('mr-to-top'),
+    modal: document.getElementById('mr-modal'),
+    modalMedia: document.getElementById('mr-modal-media'),
+    modalCat: document.getElementById('mr-modal-cat'),
+    modalName: document.getElementById('mr-modal-name'),
+    modalPrice: document.getElementById('mr-modal-price'),
+    modalDesc: document.getElementById('mr-modal-desc'),
+    modalQty: document.getElementById('mr-modal-qty'),
+    modalDec: document.getElementById('mr-modal-dec'),
+    modalInc: document.getElementById('mr-modal-inc'),
+    modalAdd: document.getElementById('mr-modal-add')
   };
 
+  var modalItem = null;
+  var modalQty = 1;
+
   /* ── Cart operations ── */
-  function addToCart(item) {
+  function addToCart(item, qty) {
+    qty = qty || 1;
     if (cart[item.id]) {
-      cart[item.id].qty += 1;
+      cart[item.id].qty += qty;
     } else {
-      cart[item.id] = { name: item.name, price: item.price, emoji: item.emoji, qty: 1 };
+      cart[item.id] = { name: item.name, price: item.price, emoji: item.emoji, qty: qty };
     }
     saveCart();
     renderCart();
@@ -213,11 +229,116 @@
     els.cartToggle.classList.add('is-bump');
   }
 
+  /* ── Quick-view modal ── */
+  function openModal(card) {
+    var btn = card.querySelector('.mr-prod-add');
+    modalItem = {
+      id: btn.dataset.name,
+      name: btn.dataset.name,
+      price: parseFloat(btn.dataset.price),
+      emoji: btn.dataset.emoji || '🎨'
+    };
+    modalQty = 1;
+
+    els.modalMedia.textContent = modalItem.emoji;
+    els.modalCat.textContent = text(card, '.mr-prod-cat');
+    els.modalName.textContent = modalItem.name;
+    els.modalPrice.textContent = 'From ' + formatPrice(modalItem.price);
+    els.modalDesc.textContent = text(card, '.mr-prod-desc');
+    els.modalQty.textContent = modalQty;
+
+    els.modal.classList.add('is-open');
+    els.modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal() {
+    els.modal.classList.remove('is-open');
+    els.modal.setAttribute('aria-hidden', 'true');
+    modalItem = null;
+  }
+
+  function setModalQty(delta) {
+    modalQty = Math.max(1, modalQty + delta);
+    els.modalQty.textContent = modalQty;
+  }
+
+  function text(scope, sel) {
+    var el = scope.querySelector(sel);
+    return el ? el.textContent.trim() : '';
+  }
+
+  /* ── Scroll reveal ── */
+  function setupReveal() {
+    var targets = document.querySelectorAll(
+      '.mr-prod-card, .mr-review-card, .mr-feat, .mr-step, .mr-section-header, ' +
+      '.mr-reviews-header, .mr-about-frame, .mr-comm-showcase, .mr-contact-btns'
+    );
+    targets.forEach(function (el) { el.classList.add('mr-reveal'); });
+
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    targets.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ── Scrollspy + nav shadow + back-to-top ── */
+  function setupScrollWatchers() {
+    var sections = ['#shop', '#commissions', '#about', '#contact']
+      .map(function (id) {
+        var el = document.querySelector(id);
+        return el ? { id: id, el: el } : null;
+      })
+      .filter(Boolean);
+
+    var navAnchors = {};
+    els.navLinks.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      navAnchors[a.getAttribute('href')] = a;
+    });
+
+    function onScroll() {
+      var y = window.pageYOffset;
+
+      els.nav.classList.toggle('is-scrolled', y > 8);
+      els.toTop.hidden = false;
+      els.toTop.classList.toggle('is-visible', y > 600);
+
+      // active section = last one whose top has passed the nav line
+      var active = null;
+      sections.forEach(function (s) {
+        if (s.el.getBoundingClientRect().top <= 90) active = s.id;
+      });
+      Object.keys(navAnchors).forEach(function (href) {
+        navAnchors[href].classList.toggle('is-active', href === active);
+      });
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { onScroll(); ticking = false; });
+        ticking = true;
+      }
+    }, { passive: true });
+    onScroll();
+  }
+
   /* ── Wire up events ── */
   function init() {
-    // Add-to-cart buttons
+    // Add-to-cart buttons (stop propagation so the card's quick-view doesn't open)
     document.querySelectorAll('.mr-prod-add').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
         var item = {
           id: btn.dataset.name,
           name: btn.dataset.name,
@@ -227,6 +348,31 @@
         addToCart(item);
         toast(item.emoji, item.name + ' added to cart');
       });
+    });
+
+    // Quick-view: clicking anywhere else on a card opens the modal
+    document.querySelectorAll('.mr-prod-card').forEach(function (card) {
+      card.addEventListener('click', function () { openModal(card); });
+    });
+
+    // Modal controls
+    els.modalDec.addEventListener('click', function () { setModalQty(-1); });
+    els.modalInc.addEventListener('click', function () { setModalQty(1); });
+    els.modalAdd.addEventListener('click', function () {
+      if (!modalItem) return;
+      var added = modalQty;
+      var item = modalItem;
+      addToCart(item, added);
+      closeModal();
+      toast(item.emoji, added + '× ' + item.name + ' added to cart');
+    });
+    els.modal.querySelectorAll('[data-modal-close]').forEach(function (el) {
+      el.addEventListener('click', closeModal);
+    });
+
+    // Back-to-top
+    els.toTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     // Cart open/close
@@ -241,7 +387,7 @@
 
     // Escape key
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeDrawer(); closeMenu(); }
+      if (e.key === 'Escape') { closeDrawer(); closeMenu(); closeModal(); }
     });
 
     // Hamburger
@@ -275,6 +421,8 @@
     });
 
     renderCart();
+    setupReveal();
+    setupScrollWatchers();
   }
 
   if (document.readyState === 'loading') {

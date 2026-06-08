@@ -235,6 +235,42 @@
 .mr-toast.is-visible { opacity: 1; transform: translateY(0); }
 .mr-toast-emoji { font-size: 16px; }
 
+/* ── NAV SCROLL STATE + SCROLLSPY ── */
+.mr-nav.is-scrolled { box-shadow: 0 4px 20px rgba(28,10,10,0.06); }
+.mr-nav-links a.is-active { color: var(--rose); }
+.mr-nav-links a.is-active::after { width: 100%; }
+
+/* ── SCROLL REVEAL ── */
+.mr-reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+.mr-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .mr-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ── QUICK-VIEW MODAL ── */
+.mr-modal { position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 24px; visibility: hidden; opacity: 0; transition: opacity 0.25s, visibility 0.25s; }
+.mr-modal.is-open { visibility: visible; opacity: 1; }
+.mr-modal-backdrop { position: absolute; inset: 0; background: rgba(28,10,10,0.5); backdrop-filter: blur(3px); }
+.mr-modal-panel { position: relative; z-index: 1; background: var(--cream); border-radius: 28px; width: 720px; max-width: 100%; max-height: 90vh; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; box-shadow: 0 32px 80px rgba(28,10,10,0.3); transform: scale(0.94); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.mr-modal.is-open .mr-modal-panel { transform: scale(1); }
+.mr-modal-close { position: absolute; top: 16px; right: 16px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: none; background: #fff; color: var(--ink-mid); font-size: 15px; cursor: pointer; box-shadow: 0 2px 10px rgba(28,10,10,0.12); transition: background 0.15s; }
+.mr-modal-close:hover { background: var(--rose-pale); color: var(--rose-deep); }
+.mr-modal-media { background: linear-gradient(160deg, #fdf2f8, #fce7f3); display: flex; align-items: center; justify-content: center; font-size: 130px; }
+.mr-modal-info { padding: 40px 36px; display: flex; flex-direction: column; justify-content: center; }
+.mr-modal-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--ink); margin: 8px 0 10px; line-height: 1.15; }
+.mr-modal-price { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--rose); margin-bottom: 16px; }
+.mr-modal-desc { font-size: 14px; color: var(--ink-mid); line-height: 1.7; margin-bottom: 26px; }
+.mr-modal-controls { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+.mr-qty-lg button { width: 36px; height: 36px; font-size: 18px; }
+.mr-qty-lg .mr-qty-val { min-width: 34px; font-size: 14px; }
+.mr-modal-add { padding: 13px 28px; flex: 1; }
+.mr-modal-note { font-size: 12px; color: var(--ink-light); }
+
+/* ── BACK TO TOP ── */
+.mr-to-top { position: fixed; bottom: 24px; right: 24px; z-index: 190; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--rose); color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 6px 20px rgba(214,63,122,0.4); opacity: 0; transform: translateY(12px); transition: opacity 0.25s, transform 0.25s, box-shadow 0.15s; }
+.mr-to-top.is-visible { opacity: 1; transform: translateY(0); }
+.mr-to-top:hover { box-shadow: 0 8px 26px rgba(214,63,122,0.55); }
+
 /* ── RESPONSIVE ──
    The original mockup is desktop-first with fixed multi-column grids.
    These breakpoints keep it usable on tablets and phones. */
@@ -283,4 +319,7 @@
   .mr-footer-top { grid-template-columns: 1fr; }
   .mr-footer-bottom { flex-direction: column; gap: 14px; align-items: flex-start; }
   .mr-products, .mr-reviews { padding: 56px 24px; }
+  .mr-modal-panel { grid-template-columns: 1fr; max-height: 88vh; overflow-y: auto; }
+  .mr-modal-media { font-size: 90px; min-height: 180px; }
+  .mr-modal-info { padding: 28px 26px 32px; }
 }

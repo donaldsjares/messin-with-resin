@@ -345,6 +345,33 @@
   <!-- TOASTS -->
   <div class="mr-toasts" id="mr-toasts" aria-live="polite"></div>
 
+  <!-- QUICK-VIEW MODAL -->
+  <div class="mr-modal" id="mr-modal" aria-hidden="true">
+    <div class="mr-modal-backdrop" data-modal-close></div>
+    <div class="mr-modal-panel" role="dialog" aria-modal="true" aria-labelledby="mr-modal-name">
+      <button class="mr-modal-close" data-modal-close aria-label="Close">✕</button>
+      <div class="mr-modal-media" id="mr-modal-media">🎨</div>
+      <div class="mr-modal-info">
+        <div class="mr-prod-cat" id="mr-modal-cat">Category</div>
+        <h3 class="mr-modal-name" id="mr-modal-name">Product</h3>
+        <div class="mr-modal-price" id="mr-modal-price">$0</div>
+        <p class="mr-modal-desc" id="mr-modal-desc"></p>
+        <div class="mr-modal-controls">
+          <div class="mr-qty mr-qty-lg">
+            <button type="button" id="mr-modal-dec" aria-label="Decrease quantity">−</button>
+            <span class="mr-qty-val" id="mr-modal-qty">1</span>
+            <button type="button" id="mr-modal-inc" aria-label="Increase quantity">+</button>
+          </div>
+          <button class="mr-btn-lg mr-modal-add" id="mr-modal-add">Add to Cart</button>
+        </div>
+        <div class="mr-modal-note">🎨 Made to order · choose your colors at checkout</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACK TO TOP -->
+  <button class="mr-to-top" id="mr-to-top" aria-label="Back to top" hidden>↑</button>
+
 </div>
 
 <script src="script.js"></script>
