@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Owner Admin · Messin With Resin</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <header class="ad-bar">
+    <div class="ad-brand">
+      <div class="ad-brand-mark">🎨</div>
+      <div>
+        <div class="ad-brand-name">Messin With Resin</div>
+        <div class="ad-brand-sub">Owner Admin</div>
+      </div>
+    </div>
+    <div class="ad-bar-right">
+      <a href="/">← View site</a>
+      <button class="ad-btn-ghost" id="ad-logout" hidden>Log out</button>
+    </div>
+  </header>
+
+  <main class="ad-main">
+
+    <!-- Loading -->
+    <div id="ad-loading" class="ad-empty">Loading…</div>
+
+    <!-- Not configured -->
+    <section id="ad-notconfigured" hidden>
+      <div class="ad-card">
+        <h2>Admin not set up yet</h2>
+        <p>To enable the owner login, add these environment variables in your Vercel project settings, then redeploy:</p>
+        <p>
+          <span class="ad-code">ADMIN_PASSWORD</span> — your login password<br><br>
+          <span class="ad-code">SESSION_SECRET</span> — a long random string<br><br>
+          For saved edits to persist, also add the <strong>Vercel KV / Upstash</strong> integration
+          (provides <span class="ad-code">KV_REST_API_URL</span> and <span class="ad-code">KV_REST_API_TOKEN</span>).
+        </p>
+      </div>
+    </section>
+
+    <!-- Login -->
+    <section id="ad-login" hidden>
+      <div class="ad-card">
+        <h2>Owner login</h2>
+        <p>Enter your password to manage products.</p>
+        <form id="ad-login-form">
+          <div class="ad-field">
+            <label for="ad-password">Password</label>
+            <input type="password" id="ad-password" autocomplete="current-password" required>
+          </div>
+          <div class="ad-err" id="ad-login-err"></div>
+          <button type="submit" class="ad-btn" id="ad-login-btn">Log in</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Editor -->
+    <section id="ad-editor" hidden>
+      <h1 class="ad-h1">Manage <em>products</em></h1>
+      <p class="ad-sub">Add, edit, reorder, or remove pieces. Click <strong>Save changes</strong> to publish to the live site.</p>
+      <div class="ad-toolbar">
+        <button class="ad-btn-soft" id="ad-add">+ Add product</button>
+        <button class="ad-btn" id="ad-save">Save changes</button>
+        <span class="ad-spacer"></span>
+        <span class="ad-status" id="ad-status"></span>
+      </div>
+      <div class="ad-list" id="ad-list"></div>
+    </section>
+
+  </main>
+
+  <template id="ad-prod-template">
+    <div class="ad-prod">
+      <div class="ad-prod-preview">
+        <div class="ad-prod-swatch" data-swatch></div>
+        <div class="ad-prod-moves">
+          <button type="button" class="ad-move" data-up title="Move up">↑</button>
+          <button type="button" class="ad-move" data-down title="Move down">↓</button>
+        </div>
+      </div>
+      <div class="ad-prod-fields">
+        <div class="ad-field">
+          <label>Name</label>
+          <input type="text" data-field="name">
+        </div>
+        <div class="ad-field">
+          <label>Category</label>
+          <input type="text" data-field="category" placeholder="e.g. Animals">
+        </div>
+        <div class="ad-field">
+          <label>Price (USD)</label>
+          <input type="number" data-field="price" min="0" step="1">
+        </div>
+        <div class="ad-field">
+          <label>Emoji / icon</label>
+          <input type="text" data-field="emoji" maxlength="8">
+        </div>
+        <div class="ad-field ad-col-span">
+          <label>Description</label>
+          <textarea data-field="description" rows="2"></textarea>
+        </div>
+        <div class="ad-field ad-col-span">
+          <label>Background (CSS gradient or color)</label>
+          <input type="text" data-field="bg" placeholder="linear-gradient(135deg,#fce7f3,#ede9fe)">
+        </div>
+        <div class="ad-field">
+          <label>Badge</label>
+          <select data-field="badgeType">
+            <option value="">None</option>
+            <option value="hot">Hot (rose)</option>
+            <option value="new">New (green)</option>
+            <option value="fav">Popular (blue)</option>
+          </select>
+        </div>
+        <div class="ad-field">
+          <label>Badge label</label>
+          <input type="text" data-field="badgeLabel" placeholder="🔥 Bestseller">
+        </div>
+        <div class="ad-prod-foot">
+          <button type="button" class="ad-del" data-del>Delete product</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -4,16 +4,29 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'mwr-cart-v1';
-  var RECENT_KEY = 'mwr-recent-v1';
+  var STORAGE_KEY = 'mwr-cart-v2';
+  var RECENT_KEY = 'mwr-recent-v2';
   var FREE_SHIPPING_THRESHOLD = 50;
   var TOAST_CAP = 3;       // max toasts visible at once
   var RECENT_MAX = 8;      // recently-viewed items kept
   var REC_MAX = 3;         // cart recommendations shown
 
+  /* Embedded seed — keep in sync with data/products.json. Used as a fallback
+   * so the storefront renders even with no backend (e.g. opened as a file).
+   * When the API is live, /api/products overrides this. */
+  var SEED_PRODUCTS = [
+    { id: 'holiday-reindeer', name: 'Holiday Reindeer', category: 'Animals', price: 24, emoji: '🦌', description: 'Handcrafted with customizable color fills — perfect for holiday decor or an unforgettable gift.', bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: { type: 'hot', label: '🔥 Bestseller' } },
+    { id: 'resin-animal-figurine', name: 'Resin Animal Figurine', category: 'Figurines', price: 18, emoji: '🐻', description: 'Your animal, your colors, your finish. Poured fresh for every single order — never repeated.', bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', badge: { type: 'new', label: '✨ New' } },
+    { id: 'phone-cardholder', name: 'Phone / Cardholder', category: 'Desk & Office', price: 32, emoji: '💳', description: 'Functional and completely eye-catching. Comes in any color combination you can imagine.', bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', badge: null },
+    { id: 'star-decor-piece', name: 'Star Décor Piece', category: 'Décor', price: 28, emoji: '⭐', description: 'A show-stopping accent for any room. Red, blue, gold, or totally custom — your call.', bg: 'linear-gradient(135deg,#fce7f3,#f5d0fe)', badge: { type: 'fav', label: '💙 Popular' } },
+    { id: 'resin-planter', name: 'Resin Planter', category: 'Planters', price: 22, emoji: '🌿', description: 'Beautifully marbled mini planters — each one poured fresh and genuinely one-of-a-kind.', bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)', badge: null },
+    { id: 'custom-keychain', name: 'Custom Keychain', category: 'Accessories', price: 12, emoji: '🗝️', description: 'Carry a little piece of art everywhere. Initials, shapes, florals — you name it, we pour it.', bg: 'linear-gradient(135deg,#fef3c7,#fed7aa)', badge: null }
+  ];
+  var activeFilter = 'all';
+
   /* ── State ── */
   var cart = loadCart(); // { id: { name, price, emoji, qty } }
-  var catalog = [];      // [{ id, name, price, emoji, category, desc }]
+  var catalog = [];      // [{ id, name, price, emoji, category, description, bg, badge }]
   var recent = loadRecent(); // array of product ids, most-recent first
 
   function loadRecent() {
@@ -30,20 +43,92 @@
     } catch (e) { /* storage unavailable */ }
   }
 
-  function buildCatalog() {
+  /* ── Products: data-driven rendering ── */
+  function setCatalog(products) {
+    catalog = (products || []).map(function (p) {
+      return {
+        id: String(p.id),
+        name: p.name,
+        category: p.category || '',
+        price: Number(p.price) || 0,
+        emoji: p.emoji || '🎨',
+        description: p.description || '',
+        bg: p.bg || 'var(--cream-mid)',
+        badge: p.badge && p.badge.type ? p.badge : null
+      };
+    });
+    renderFilters();
+    renderProductGrid();
+  }
+
+  function renderProductGrid() {
+    var grid = document.getElementById('mr-prod-grid');
+    if (!grid) return;
+    grid.innerHTML = catalog.map(productCardHTML).join('');
+    applyFilter(activeFilter);
+    bindProductCards();
+  }
+
+  function productCardHTML(p) {
+    var chip = p.badge
+      ? '<div class="mr-prod-chip mr-chip-' + escapeAttr(p.badge.type) + '">' + escapeHtml(p.badge.label) + '</div>'
+      : '';
+    return '' +
+      '<div class="mr-prod-card" data-category="' + escapeAttr(p.category) + '">' +
+        '<div class="mr-prod-img" style="background:' + escapeAttr(p.bg) + '">' + p.emoji + chip + '</div>' +
+        '<div class="mr-prod-body">' +
+          '<div class="mr-prod-cat">' + escapeHtml(p.category) + '</div>' +
+          '<div class="mr-prod-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="mr-prod-desc">' + escapeHtml(p.description) + '</div>' +
+          '<div class="mr-prod-row">' +
+            '<div class="mr-prod-price">From ' + formatPrice(p.price) + '</div>' +
+            '<button class="mr-prod-add" data-id="' + escapeAttr(p.id) + '">Add to Cart</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function bindProductCards() {
     document.querySelectorAll('.mr-prod-card').forEach(function (card) {
-      var btn = card.querySelector('.mr-prod-add');
-      var img = card.querySelector('.mr-prod-img');
-      catalog.push({
-        id: btn.dataset.name,
-        name: btn.dataset.name,
-        price: parseFloat(btn.dataset.price),
-        emoji: btn.dataset.emoji || '🎨',
-        category: card.dataset.category || '',
-        desc: text(card, '.mr-prod-desc'),
-        bg: img ? img.style.background : ''
+      card.addEventListener('click', function () {
+        var btn = card.querySelector('.mr-prod-add');
+        var p = findProduct(btn.dataset.id);
+        if (p) openModalForProduct(p);
+      });
+      var addBtn = card.querySelector('.mr-prod-add');
+      addBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var p = findProduct(addBtn.dataset.id);
+        if (p) addWithUndo({ id: p.id, name: p.name, price: p.price, emoji: p.emoji }, 1, p.name + ' added to cart');
       });
     });
+  }
+
+  function renderFilters() {
+    var wrap = document.getElementById('mr-filters');
+    if (!wrap) return;
+    var cats = [];
+    catalog.forEach(function (p) {
+      if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category);
+    });
+    var html = '<button class="mr-filter' + (activeFilter === 'all' ? ' is-active' : '') + '" data-filter="all">All</button>';
+    html += cats.map(function (c) {
+      return '<button class="mr-filter' + (activeFilter === c ? ' is-active' : '') +
+        '" data-filter="' + escapeAttr(c) + '">' + escapeHtml(c) + '</button>';
+    }).join('');
+    wrap.innerHTML = html;
+  }
+
+  function applyFilter(filter) {
+    activeFilter = filter;
+    var shown = 0;
+    document.querySelectorAll('.mr-prod-card').forEach(function (card) {
+      var match = filter === 'all' || card.dataset.category === filter;
+      card.classList.toggle('is-hidden', !match);
+      if (match) shown++;
+    });
+    var empty = document.getElementById('mr-prod-empty');
+    if (empty) empty.hidden = shown > 0;
   }
 
   function findProduct(id) {
@@ -391,8 +476,12 @@
 
   function escapeHtml(s) {
     var d = document.createElement('div');
-    d.textContent = s;
+    d.textContent = s == null ? '' : s;
     return d.innerHTML;
+  }
+
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/"/g, '&quot;');
   }
 
   /* ── Drawer + overlay ── */
@@ -497,12 +586,6 @@
   }
 
   /* ── Quick-view modal ── */
-  function openModal(card) {
-    var btn = card.querySelector('.mr-prod-add');
-    var p = findProduct(btn.dataset.name);
-    if (p) openModalForProduct(p);
-  }
-
   function openModalForProduct(p) {
     modalItem = { id: p.id, name: p.name, price: p.price, emoji: p.emoji };
     modalQty = 1;
@@ -511,7 +594,7 @@
     els.modalCat.textContent = p.category;
     els.modalName.textContent = p.name;
     els.modalPrice.textContent = 'From ' + formatPrice(p.price);
-    els.modalDesc.textContent = p.desc;
+    els.modalDesc.textContent = p.description;
     els.modalQty.textContent = modalQty;
 
     recordRecentlyViewed(p.id);
@@ -553,11 +636,6 @@
     } else {
       toast('🔗', 'Share: ' + url);
     }
-  }
-
-  function text(scope, sel) {
-    var el = scope.querySelector(sel);
-    return el ? el.textContent.trim() : '';
   }
 
   /* ── Scroll reveal ── */
@@ -626,27 +704,17 @@
     onScroll();
   }
 
-  /* ── Product filtering ── */
+  /* ── Product filtering ──
+   * Delegated so it keeps working after the grid/filters are re-rendered. */
   function setupFilters() {
     if (!els.filters) return;
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.mr-prod-card'));
-
     els.filters.addEventListener('click', function (e) {
       var btn = e.target.closest('.mr-filter');
       if (!btn) return;
-
       els.filters.querySelectorAll('.mr-filter').forEach(function (b) {
         b.classList.toggle('is-active', b === btn);
       });
-
-      var filter = btn.dataset.filter;
-      var shown = 0;
-      cards.forEach(function (card) {
-        var match = filter === 'all' || card.dataset.category === filter;
-        card.classList.toggle('is-hidden', !match);
-        if (match) shown++;
-      });
-      els.prodEmpty.hidden = shown > 0;
+      applyFilter(btn.dataset.filter);
     });
   }
 
@@ -778,28 +846,26 @@
     els.lbCount.textContent = (lbIndex + 1) + ' / ' + galleryItems.length;
   }
 
+  /* ── Products loader ──
+   * Render the seed immediately, then override from the API when available. */
+  function loadProducts() {
+    setCatalog(SEED_PRODUCTS);
+    if (!window.fetch) return;
+    fetch('/api/products', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data && Array.isArray(data.products) && data.products.length) {
+          setCatalog(data.products);
+          renderRecentlyViewed();
+          renderCart();
+        }
+      })
+      .catch(function () { /* offline or no backend — seed already rendered */ });
+  }
+
   /* ── Wire up events ── */
   function init() {
-    buildCatalog();
-
-    // Add-to-cart buttons (stop propagation so the card's quick-view doesn't open)
-    document.querySelectorAll('.mr-prod-add').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var item = {
-          id: btn.dataset.name,
-          name: btn.dataset.name,
-          price: parseFloat(btn.dataset.price),
-          emoji: btn.dataset.emoji || '🎨'
-        };
-        addWithUndo(item, 1, item.name + ' added to cart');
-      });
-    });
-
-    // Quick-view: clicking anywhere else on a card opens the modal
-    document.querySelectorAll('.mr-prod-card').forEach(function (card) {
-      card.addEventListener('click', function () { openModal(card); });
-    });
+    loadProducts();
 
     // Modal controls
     els.modalDec.addEventListener('click', function () { setModalQty(-1); });

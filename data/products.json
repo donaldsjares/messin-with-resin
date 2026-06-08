@@ -1,0 +1,64 @@
+{
+  "products": [
+    {
+      "id": "holiday-reindeer",
+      "name": "Holiday Reindeer",
+      "category": "Animals",
+      "price": 24,
+      "emoji": "🦌",
+      "description": "Handcrafted with customizable color fills — perfect for holiday decor or an unforgettable gift.",
+      "bg": "linear-gradient(135deg,#fce7f3,#ede9fe)",
+      "badge": { "type": "hot", "label": "🔥 Bestseller" }
+    },
+    {
+      "id": "resin-animal-figurine",
+      "name": "Resin Animal Figurine",
+      "category": "Figurines",
+      "price": 18,
+      "emoji": "🐻",
+      "description": "Your animal, your colors, your finish. Poured fresh for every single order — never repeated.",
+      "bg": "linear-gradient(135deg,#fef9c3,#fde68a)",
+      "badge": { "type": "new", "label": "✨ New" }
+    },
+    {
+      "id": "phone-cardholder",
+      "name": "Phone / Cardholder",
+      "category": "Desk & Office",
+      "price": 32,
+      "emoji": "💳",
+      "description": "Functional and completely eye-catching. Comes in any color combination you can imagine.",
+      "bg": "linear-gradient(135deg,#e0f2fe,#bae6fd)",
+      "badge": null
+    },
+    {
+      "id": "star-decor-piece",
+      "name": "Star Décor Piece",
+      "category": "Décor",
+      "price": 28,
+      "emoji": "⭐",
+      "description": "A show-stopping accent for any room. Red, blue, gold, or totally custom — your call.",
+      "bg": "linear-gradient(135deg,#fce7f3,#f5d0fe)",
+      "badge": { "type": "fav", "label": "💙 Popular" }
+    },
+    {
+      "id": "resin-planter",
+      "name": "Resin Planter",
+      "category": "Planters",
+      "price": 22,
+      "emoji": "🌿",
+      "description": "Beautifully marbled mini planters — each one poured fresh and genuinely one-of-a-kind.",
+      "bg": "linear-gradient(135deg,#d1fae5,#a7f3d0)",
+      "badge": null
+    },
+    {
+      "id": "custom-keychain",
+      "name": "Custom Keychain",
+      "category": "Accessories",
+      "price": 12,
+      "emoji": "🗝️",
+      "description": "Carry a little piece of art everywhere. Initials, shapes, florals — you name it, we pour it.",
+      "bg": "linear-gradient(135deg,#fef3c7,#fed7aa)",
+      "badge": null
+    }
+  ]
+}
