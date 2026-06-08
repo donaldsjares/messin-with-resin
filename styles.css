@@ -266,6 +266,38 @@
 .mr-modal-add { padding: 13px 28px; flex: 1; }
 .mr-modal-note { font-size: 12px; color: var(--ink-light); }
 
+/* ── PRODUCT FILTERS ── */
+.mr-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+.mr-filter { background: #fff; border: 1px solid var(--border); color: var(--ink-mid); padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.mr-filter:hover { border-color: var(--rose); color: var(--rose); }
+.mr-filter.is-active { background: var(--rose); border-color: var(--rose); color: #fff; }
+.mr-prod-empty { text-align: center; padding: 48px 0; color: var(--ink-light); font-size: 14px; }
+.mr-prod-card.is-hidden { display: none; }
+
+/* ── COMMISSION FORM MODAL ── */
+.mr-form-panel { display: block; grid-template-columns: none; width: 560px; padding: 40px 40px 36px; overflow-y: auto; }
+.mr-form-head { margin-bottom: 24px; }
+.mr-form-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--ink); margin: 6px 0 10px; line-height: 1.15; }
+.mr-form-title em { font-style: italic; color: var(--rose); }
+.mr-form-intro { font-size: 13.5px; color: var(--ink-mid); line-height: 1.65; }
+.mr-form { display: flex; flex-direction: column; gap: 16px; }
+.mr-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mr-field { display: flex; flex-direction: column; gap: 6px; }
+.mr-field label { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.mr-field label span { color: var(--rose); }
+.mr-field label small { font-weight: 400; color: var(--ink-light); }
+.mr-field input, .mr-field select, .mr-field textarea { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--ink); background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 11px 14px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
+.mr-field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+.mr-field input:focus, .mr-field select:focus, .mr-field textarea:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(214,63,122,0.12); }
+.mr-field.has-error input, .mr-field.has-error textarea { border-color: #dc2626; }
+.mr-field-err { font-size: 11.5px; color: #dc2626; min-height: 0; display: none; }
+.mr-field.has-error .mr-field-err { display: block; }
+.mr-form-submit { margin-top: 8px; width: 100%; }
+.mr-form-success { text-align: center; padding: 24px 8px; }
+.mr-form-success-icon { font-size: 56px; margin-bottom: 12px; }
+.mr-form-success h3 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.mr-form-success p { font-size: 14px; color: var(--ink-mid); line-height: 1.65; margin-bottom: 22px; }
+
 /* ── BACK TO TOP ── */
 .mr-to-top { position: fixed; bottom: 24px; right: 24px; z-index: 190; width: 46px; height: 46px; border-radius: 50%; border: none; background: var(--rose); color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 6px 20px rgba(214,63,122,0.4); opacity: 0; transform: translateY(12px); transition: opacity 0.25s, transform 0.25s, box-shadow 0.15s; }
 .mr-to-top.is-visible { opacity: 1; transform: translateY(0); }
@@ -322,4 +354,6 @@
   .mr-modal-panel { grid-template-columns: 1fr; max-height: 88vh; overflow-y: auto; }
   .mr-modal-media { font-size: 90px; min-height: 180px; }
   .mr-modal-info { padding: 28px 26px 32px; }
+  .mr-form-panel { padding: 32px 24px 28px; }
+  .mr-field-row { grid-template-columns: 1fr; }
 }

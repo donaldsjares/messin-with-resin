@@ -48,7 +48,12 @@
     modalQty: document.getElementById('mr-modal-qty'),
     modalDec: document.getElementById('mr-modal-dec'),
     modalInc: document.getElementById('mr-modal-inc'),
-    modalAdd: document.getElementById('mr-modal-add')
+    modalAdd: document.getElementById('mr-modal-add'),
+    filters: document.getElementById('mr-filters'),
+    prodEmpty: document.getElementById('mr-prod-empty'),
+    formModal: document.getElementById('mr-form-modal'),
+    form: document.getElementById('mr-form'),
+    formSuccess: document.getElementById('mr-form-success')
   };
 
   var modalItem = null;
@@ -333,6 +338,107 @@
     onScroll();
   }
 
+  /* ── Product filtering ── */
+  function setupFilters() {
+    if (!els.filters) return;
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.mr-prod-card'));
+
+    els.filters.addEventListener('click', function (e) {
+      var btn = e.target.closest('.mr-filter');
+      if (!btn) return;
+
+      els.filters.querySelectorAll('.mr-filter').forEach(function (b) {
+        b.classList.toggle('is-active', b === btn);
+      });
+
+      var filter = btn.dataset.filter;
+      var shown = 0;
+      cards.forEach(function (card) {
+        var match = filter === 'all' || card.dataset.category === filter;
+        card.classList.toggle('is-hidden', !match);
+        if (match) shown++;
+      });
+      els.prodEmpty.hidden = shown > 0;
+    });
+  }
+
+  /* ── Commission form modal ── */
+  function openForm() {
+    closeMenu();
+    resetForm();
+    els.formModal.classList.add('is-open');
+    els.formModal.setAttribute('aria-hidden', 'false');
+    setTimeout(function () {
+      var first = els.form.querySelector('input');
+      if (first) first.focus();
+    }, 300);
+  }
+
+  function closeForm() {
+    els.formModal.classList.remove('is-open');
+    els.formModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function resetForm() {
+    els.form.reset();
+    els.form.hidden = false;
+    els.formSuccess.hidden = true;
+    els.form.querySelectorAll('.mr-field.has-error').forEach(function (f) {
+      f.classList.remove('has-error');
+    });
+  }
+
+  function setFieldError(name, message) {
+    var field = els.form.querySelector('[name="' + name + '"]');
+    if (!field) return;
+    var wrap = field.closest('.mr-field');
+    var errEl = els.form.querySelector('[data-err-for="' + name + '"]');
+    if (message) {
+      wrap.classList.add('has-error');
+      if (errEl) errEl.textContent = message;
+    } else {
+      wrap.classList.remove('has-error');
+      if (errEl) errEl.textContent = '';
+    }
+  }
+
+  function validateForm(data) {
+    var ok = true;
+    setFieldError('name', '');
+    setFieldError('email', '');
+    setFieldError('details', '');
+
+    if (!data.name.trim()) { setFieldError('name', 'Please tell us your name.'); ok = false; }
+    if (!data.email.trim()) {
+      setFieldError('email', 'We need an email to reach you.'); ok = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+      setFieldError('email', 'That email looks off — mind checking it?'); ok = false;
+    }
+    if (!data.details.trim()) { setFieldError('details', 'Give us a little detail to work with.'); ok = false; }
+    return ok;
+  }
+
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    var f = els.form.elements;
+    var data = {
+      name: f.namedItem('name').value,
+      email: f.namedItem('email').value,
+      phone: f.namedItem('phone').value,
+      occasion: f.namedItem('occasion').value,
+      budget: f.namedItem('budget').value,
+      details: f.namedItem('details').value
+    };
+    if (!validateForm(data)) return;
+
+    // No backend yet — log the payload and show a success state.
+    // Wire this up to a real endpoint / form service once available.
+    console.log('Commission request:', data);
+    els.form.hidden = true;
+    els.formSuccess.hidden = false;
+    toast('🩷', 'Request sent — we\'ll be in touch!');
+  }
+
   /* ── Wire up events ── */
   function init() {
     // Add-to-cart buttons (stop propagation so the card's quick-view doesn't open)
@@ -375,6 +481,18 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
+    // Commission form: open triggers, close, submit
+    document.querySelectorAll('[data-open-form]').forEach(function (el) {
+      el.addEventListener('click', openForm);
+    });
+    els.formModal.querySelectorAll('[data-form-close]').forEach(function (el) {
+      el.addEventListener('click', closeForm);
+    });
+    els.form.addEventListener('submit', handleFormSubmit);
+
+    // Product category filters
+    setupFilters();
+
     // Cart open/close
     els.cartToggle.addEventListener('click', openDrawer);
     els.cartClose.addEventListener('click', closeDrawer);
@@ -387,7 +505,7 @@
 
     // Escape key
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeDrawer(); closeMenu(); closeModal(); }
+      if (e.key === 'Escape') { closeDrawer(); closeMenu(); closeModal(); closeForm(); }
     });
 
     // Hamburger

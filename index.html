@@ -60,7 +60,7 @@
       <p class="mr-hero-sub">Custom resin creations made to order — from playful figurines to dazzling home décor. Your colors, your vision, your one-of-a-kind piece.</p>
       <div class="mr-hero-ctas">
         <button class="mr-btn-lg" data-scroll-to="#shop">Shop the Collection</button>
-        <button class="mr-btn-lg-soft" data-scroll-to="#commissions">Request a Custom Piece</button>
+        <button class="mr-btn-lg-soft" data-open-form>Request a Custom Piece</button>
       </div>
       <div class="mr-hero-trust">
         <div class="mr-trust-item">Free shipping $50+</div>
@@ -137,8 +137,18 @@
       </div>
       <button class="mr-btn-soft" style="font-size:13.5px;padding:11px 24px;">View All Products →</button>
     </div>
+    <div class="mr-filters" id="mr-filters">
+      <button class="mr-filter is-active" data-filter="all">All</button>
+      <button class="mr-filter" data-filter="Animals">Animals</button>
+      <button class="mr-filter" data-filter="Figurines">Figurines</button>
+      <button class="mr-filter" data-filter="Décor">Décor</button>
+      <button class="mr-filter" data-filter="Desk &amp; Office">Desk &amp; Office</button>
+      <button class="mr-filter" data-filter="Planters">Planters</button>
+      <button class="mr-filter" data-filter="Accessories">Accessories</button>
+    </div>
+    <div class="mr-prod-empty" id="mr-prod-empty" hidden>No pieces in this category yet — check back soon!</div>
     <div class="mr-prod-grid">
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Animals">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#fce7f3,#ede9fe);">🦌<div class="mr-prod-chip mr-chip-hot">🔥 Bestseller</div></div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Animals</div>
@@ -147,7 +157,7 @@
           <div class="mr-prod-row"><div class="mr-prod-price">From $24</div><button class="mr-prod-add" data-name="Holiday Reindeer" data-price="24" data-emoji="🦌">Add to Cart</button></div>
         </div>
       </div>
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Figurines">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#fef9c3,#fde68a);">🐻<div class="mr-prod-chip mr-chip-new">✨ New</div></div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Figurines</div>
@@ -156,7 +166,7 @@
           <div class="mr-prod-row"><div class="mr-prod-price">From $18</div><button class="mr-prod-add" data-name="Resin Animal Figurine" data-price="18" data-emoji="🐻">Add to Cart</button></div>
         </div>
       </div>
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Desk &amp; Office">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);">💳</div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Desk & Office</div>
@@ -165,7 +175,7 @@
           <div class="mr-prod-row"><div class="mr-prod-price">From $32</div><button class="mr-prod-add" data-name="Phone / Cardholder" data-price="32" data-emoji="💳">Add to Cart</button></div>
         </div>
       </div>
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Décor">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#fce7f3,#f5d0fe);">⭐<div class="mr-prod-chip mr-chip-fav">💙 Popular</div></div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Décor</div>
@@ -174,7 +184,7 @@
           <div class="mr-prod-row"><div class="mr-prod-price">From $28</div><button class="mr-prod-add" data-name="Star Décor Piece" data-price="28" data-emoji="⭐">Add to Cart</button></div>
         </div>
       </div>
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Planters">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">🌿</div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Planters</div>
@@ -183,7 +193,7 @@
           <div class="mr-prod-row"><div class="mr-prod-price">From $22</div><button class="mr-prod-add" data-name="Resin Planter" data-price="22" data-emoji="🌿">Add to Cart</button></div>
         </div>
       </div>
-      <div class="mr-prod-card">
+      <div class="mr-prod-card" data-category="Accessories">
         <div class="mr-prod-img" style="background:linear-gradient(135deg,#fef3c7,#fed7aa);">🗝️</div>
         <div class="mr-prod-body">
           <div class="mr-prod-cat">Accessories</div>
@@ -259,14 +269,14 @@
           <div><div class="mr-step-title">Handcrafted & shipped</div><div class="mr-step-sub">Your unique piece arrives at your door, gift-ready</div></div>
         </div>
       </div>
-      <button class="mr-comm-btn">Request a Commission →</button>
+      <button class="mr-comm-btn" data-open-form>Request a Commission →</button>
     </div>
     <div class="mr-comm-right">
       <div class="mr-comm-showcase">
         <div class="mr-comm-circle">🩷</div>
         <div class="mr-comm-label">Recent Commission</div>
         <div class="mr-comm-title">Baby footprint heart ornament</div>
-        <button class="mr-comm-cta">Start Your Custom Order →</button>
+        <button class="mr-comm-cta" data-open-form>Start Your Custom Order →</button>
       </div>
     </div>
   </section>
@@ -279,7 +289,7 @@
     </div>
     <div class="mr-contact-btns">
       <button class="mr-contact-btn-a">📷 Follow on Instagram</button>
-      <button class="mr-contact-btn-b">✉️ Send a Message</button>
+      <button class="mr-contact-btn-b" data-open-form>✉️ Send a Message</button>
     </div>
   </section>
 
@@ -365,6 +375,76 @@
           <button class="mr-btn-lg mr-modal-add" id="mr-modal-add">Add to Cart</button>
         </div>
         <div class="mr-modal-note">🎨 Made to order · choose your colors at checkout</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMISSION REQUEST MODAL -->
+  <div class="mr-modal mr-form-modal" id="mr-form-modal" aria-hidden="true">
+    <div class="mr-modal-backdrop" data-form-close></div>
+    <div class="mr-modal-panel mr-form-panel" role="dialog" aria-modal="true" aria-labelledby="mr-form-title">
+      <button class="mr-modal-close" data-form-close aria-label="Close">✕</button>
+      <div class="mr-form-head">
+        <div class="mr-eyebrow">Custom Commission</div>
+        <h3 class="mr-form-title" id="mr-form-title">Tell us your <em>vision</em></h3>
+        <p class="mr-form-intro">Share a few details and we'll follow up with a concept and an upfront quote. No commitment.</p>
+      </div>
+      <form class="mr-form" id="mr-form" novalidate>
+        <div class="mr-field">
+          <label for="mr-f-name">Name <span>*</span></label>
+          <input type="text" id="mr-f-name" name="name" autocomplete="name" required>
+          <div class="mr-field-err" data-err-for="name"></div>
+        </div>
+        <div class="mr-field-row">
+          <div class="mr-field">
+            <label for="mr-f-email">Email <span>*</span></label>
+            <input type="email" id="mr-f-email" name="email" autocomplete="email" required>
+            <div class="mr-field-err" data-err-for="email"></div>
+          </div>
+          <div class="mr-field">
+            <label for="mr-f-phone">Phone <small>(optional)</small></label>
+            <input type="tel" id="mr-f-phone" name="phone" autocomplete="tel">
+            <div class="mr-field-err" data-err-for="phone"></div>
+          </div>
+        </div>
+        <div class="mr-field-row">
+          <div class="mr-field">
+            <label for="mr-f-occasion">Occasion</label>
+            <select id="mr-f-occasion" name="occasion">
+              <option value="">Choose one…</option>
+              <option>Memorial / Keepsake</option>
+              <option>Holiday</option>
+              <option>Birthday / Gift</option>
+              <option>Home Décor</option>
+              <option>Wedding / Event</option>
+              <option>Just because</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="mr-field">
+            <label for="mr-f-budget">Budget <small>(optional)</small></label>
+            <select id="mr-f-budget" name="budget">
+              <option value="">No preference</option>
+              <option>Under $25</option>
+              <option>$25 – $50</option>
+              <option>$50 – $100</option>
+              <option>$100 – $250</option>
+              <option>$250+</option>
+            </select>
+          </div>
+        </div>
+        <div class="mr-field">
+          <label for="mr-f-details">What are you imagining? <span>*</span></label>
+          <textarea id="mr-f-details" name="details" rows="4" placeholder="Colors, size, theme, a reference idea — anything goes." required></textarea>
+          <div class="mr-field-err" data-err-for="details"></div>
+        </div>
+        <button type="submit" class="mr-comm-btn mr-form-submit" id="mr-form-submit">Send Request →</button>
+      </form>
+      <div class="mr-form-success" id="mr-form-success" hidden>
+        <div class="mr-form-success-icon">🩷</div>
+        <h3>Request received!</h3>
+        <p>Thank you — we'll be in touch soon to talk through your idea.</p>
+        <button class="mr-btn-soft" data-form-close>Close</button>
       </div>
     </div>
   </div>
