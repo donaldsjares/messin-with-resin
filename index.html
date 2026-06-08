@@ -36,7 +36,7 @@
         <div class="mr-logo-sub">Handcrafted Resin Art</div>
       </div>
     </div>
-    <div class="mr-nav-links">
+    <div class="mr-nav-links" id="mr-nav-links">
       <a href="#shop">Shop</a>
       <a href="#commissions">Commissions</a>
       <a href="#gallery">Gallery</a>
@@ -44,8 +44,11 @@
       <a href="#contact">Contact</a>
     </div>
     <div class="mr-nav-right">
-      <div class="mr-cart">🛒 <span>Cart (0)</span></div>
-      <button class="mr-btn">Shop Now</button>
+      <button class="mr-cart" id="mr-cart-toggle" aria-label="Open cart">🛒 <span>Cart (<span class="mr-cart-count" data-cart-count>0</span>)</span></button>
+      <button class="mr-btn" data-scroll-to="#shop">Shop Now</button>
+      <button class="mr-hamburger" id="mr-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
@@ -56,8 +59,8 @@
       <h1 class="mr-hero-h1">Every piece tells<br><span class="mr-hero-h1-italic">your story.</span></h1>
       <p class="mr-hero-sub">Custom resin creations made to order — from playful figurines to dazzling home décor. Your colors, your vision, your one-of-a-kind piece.</p>
       <div class="mr-hero-ctas">
-        <button class="mr-btn-lg">Shop the Collection</button>
-        <button class="mr-btn-lg-soft">Request a Custom Piece</button>
+        <button class="mr-btn-lg" data-scroll-to="#shop">Shop the Collection</button>
+        <button class="mr-btn-lg-soft" data-scroll-to="#commissions">Request a Custom Piece</button>
       </div>
       <div class="mr-hero-trust">
         <div class="mr-trust-item">Free shipping $50+</div>
@@ -141,7 +144,7 @@
           <div class="mr-prod-cat">Animals</div>
           <div class="mr-prod-name">Holiday Reindeer</div>
           <div class="mr-prod-desc">Handcrafted with customizable color fills — perfect for holiday decor or an unforgettable gift.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $24</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $24</div><button class="mr-prod-add" data-name="Holiday Reindeer" data-price="24" data-emoji="🦌">Add to Cart</button></div>
         </div>
       </div>
       <div class="mr-prod-card">
@@ -150,7 +153,7 @@
           <div class="mr-prod-cat">Figurines</div>
           <div class="mr-prod-name">Resin Animal Figurine</div>
           <div class="mr-prod-desc">Your animal, your colors, your finish. Poured fresh for every single order — never repeated.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $18</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $18</div><button class="mr-prod-add" data-name="Resin Animal Figurine" data-price="18" data-emoji="🐻">Add to Cart</button></div>
         </div>
       </div>
       <div class="mr-prod-card">
@@ -159,7 +162,7 @@
           <div class="mr-prod-cat">Desk & Office</div>
           <div class="mr-prod-name">Phone / Cardholder</div>
           <div class="mr-prod-desc">Functional and completely eye-catching. Comes in any color combination you can imagine.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $32</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $32</div><button class="mr-prod-add" data-name="Phone / Cardholder" data-price="32" data-emoji="💳">Add to Cart</button></div>
         </div>
       </div>
       <div class="mr-prod-card">
@@ -168,7 +171,7 @@
           <div class="mr-prod-cat">Décor</div>
           <div class="mr-prod-name">Star Décor Piece</div>
           <div class="mr-prod-desc">A show-stopping accent for any room. Red, blue, gold, or totally custom — your call.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $28</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $28</div><button class="mr-prod-add" data-name="Star Décor Piece" data-price="28" data-emoji="⭐">Add to Cart</button></div>
         </div>
       </div>
       <div class="mr-prod-card">
@@ -177,7 +180,7 @@
           <div class="mr-prod-cat">Planters</div>
           <div class="mr-prod-name">Resin Planter</div>
           <div class="mr-prod-desc">Beautifully marbled mini planters — each one poured fresh and genuinely one-of-a-kind.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $22</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $22</div><button class="mr-prod-add" data-name="Resin Planter" data-price="22" data-emoji="🌿">Add to Cart</button></div>
         </div>
       </div>
       <div class="mr-prod-card">
@@ -186,7 +189,7 @@
           <div class="mr-prod-cat">Accessories</div>
           <div class="mr-prod-name">Custom Keychain</div>
           <div class="mr-prod-desc">Carry a little piece of art everywhere. Initials, shapes, florals — you name it, we pour it.</div>
-          <div class="mr-prod-row"><div class="mr-prod-price">From $12</div><button class="mr-prod-add">Add to Cart</button></div>
+          <div class="mr-prod-row"><div class="mr-prod-price">From $12</div><button class="mr-prod-add" data-name="Custom Keychain" data-price="12" data-emoji="🗝️">Add to Cart</button></div>
         </div>
       </div>
     </div>
@@ -313,7 +316,37 @@
     </div>
   </footer>
 
+  <!-- CART DRAWER -->
+  <div class="mr-overlay" id="mr-overlay" hidden></div>
+  <aside class="mr-cart-drawer" id="mr-cart-drawer" aria-label="Shopping cart" aria-hidden="true">
+    <div class="mr-cart-head">
+      <div>
+        <div class="mr-cart-title">Your Cart</div>
+        <div class="mr-cart-subtitle" data-cart-summary>0 items</div>
+      </div>
+      <button class="mr-cart-close" id="mr-cart-close" aria-label="Close cart">✕</button>
+    </div>
+    <div class="mr-cart-items" id="mr-cart-items"></div>
+    <div class="mr-cart-empty" id="mr-cart-empty">
+      <div class="mr-cart-empty-icon">🛒</div>
+      <p>Your cart is empty.</p>
+      <button class="mr-btn-soft" data-scroll-to="#shop" data-close-cart>Browse the Collection</button>
+    </div>
+    <div class="mr-cart-foot" id="mr-cart-foot" hidden>
+      <div class="mr-cart-total-row">
+        <span>Subtotal</span>
+        <span class="mr-cart-total" data-cart-total>$0</span>
+      </div>
+      <p class="mr-cart-note">Shipping &amp; custom options calculated at checkout. Free shipping on orders over $50.</p>
+      <button class="mr-comm-btn mr-cart-checkout" id="mr-cart-checkout">Checkout →</button>
+    </div>
+  </aside>
+
+  <!-- TOASTS -->
+  <div class="mr-toasts" id="mr-toasts" aria-live="polite"></div>
+
 </div>
 
+<script src="script.js"></script>
 </body>
 </html>
