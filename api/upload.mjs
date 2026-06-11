@@ -1,5 +1,7 @@
 // Owner-only image upload → Vercel Blob. ESM (.mjs) so it can import the
-// ESM-only @vercel/blob SDK; the rest of the API stays CommonJS.
+// ESM-only @vercel/blob SDK. Exported as a named POST handler so Vercel
+// invokes it with a Web-standard Request (giving request.headers.get() and
+// request.formData()), rather than the Node (req, res) style.
 import { put } from '@vercel/blob';
 import authLib from '../lib/auth.js';
 
@@ -13,10 +15,8 @@ function json(body, status) {
   });
 }
 
-export default async function handler(request) {
-  if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
-
-  var cookie = request.headers.get('cookie') || '';
+export async function POST(request) {
+  const cookie = request.headers.get('cookie') || '';
   if (!authLib.isAuthed({ headers: { cookie: cookie } })) {
     return json({ error: 'Unauthorized.' }, 401);
   }
@@ -27,21 +27,21 @@ export default async function handler(request) {
     }, 503);
   }
 
-  var form;
+  let form;
   try {
     form = await request.formData();
   } catch (e) {
     return json({ error: 'Invalid upload.' }, 400);
   }
 
-  var file = form.get('file');
+  const file = form.get('file');
   if (!file || typeof file === 'string') return json({ error: 'No file provided.' }, 400);
   if (ALLOWED.indexOf(file.type) === -1) return json({ error: 'Unsupported image type.' }, 400);
   if (file.size > MAX_BYTES) return json({ error: 'Image too large (max 6MB).' }, 400);
 
   try {
-    var ext = file.type.split('/')[1].replace('jpeg', 'jpg');
-    var blob = await put('products/photo.' + ext, file, {
+    const ext = file.type.split('/')[1].replace('jpeg', 'jpg');
+    const blob = await put('products/photo.' + ext, file, {
       access: 'public',
       addRandomSuffix: true,
       contentType: file.type
