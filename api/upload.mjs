@@ -31,6 +31,7 @@ export async function POST(request) {
   try {
     form = await request.formData();
   } catch (e) {
+    console.error('upload: formData parse failed:', e && e.message);
     return json({ error: 'Invalid upload.' }, 400);
   }
 
@@ -48,6 +49,7 @@ export async function POST(request) {
     });
     return json({ url: blob.url }, 200);
   } catch (e) {
-    return json({ error: 'Upload failed. Please try again.' }, 500);
+    console.error('upload: blob put failed:', e && e.stack ? e.stack : e);
+    return json({ error: 'Upload failed: ' + (e && e.message ? e.message : 'unknown error') }, 500);
   }
 }
