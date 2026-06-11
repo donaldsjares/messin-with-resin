@@ -10,3 +10,11 @@ Thumbs.db
 
 # Dependencies (in case a tooling layer is added later)
 node_modules/
+
+# Vercel
+.vercel
+
+# Local env
+.env
+.env.local
+.env*.local

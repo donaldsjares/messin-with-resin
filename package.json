@@ -1,0 +1,9 @@
+{
+  "name": "messin-with-resin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Messin With Resin storefront + owner admin",
+  "dependencies": {
+    "@vercel/blob": "^2.4.0"
+  }
+}
