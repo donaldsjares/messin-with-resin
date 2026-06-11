@@ -80,7 +80,7 @@
   function clone(p) {
     return {
       id: p.id, name: p.name, category: p.category || '', price: p.price,
-      emoji: p.emoji || '🎨', description: p.description || '',
+      emoji: p.emoji || '🎨', description: p.description || '', image: p.image || '',
       bg: p.bg || 'linear-gradient(135deg,#fce7f3,#ede9fe)',
       badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null
     };
@@ -111,14 +111,40 @@
     field('bg').value = p.bg || '';
     field('badgeType').value = p.badge ? p.badge.type : '';
     field('badgeLabel').value = p.badge ? p.badge.label : '';
+    field('image').value = p.image || '';
+
+    var fileInput = node.querySelector('[data-file]');
+    var uploadWrap = node.querySelector('.ad-upload');
+    var uploadLabel = node.querySelector('[data-upload-label]');
+    var removeBtn = node.querySelector('[data-img-remove]');
 
     function paintSwatch() {
-      swatch.style.background = field('bg').value || 'var(--cream-mid)';
-      swatch.textContent = field('emoji').value || '🎨';
+      var img = field('image').value;
+      if (img) {
+        swatch.style.background = "#fff url('" + img.replace(/'/g, '%27') + "') center/cover no-repeat";
+        swatch.textContent = '';
+        removeBtn.hidden = false;
+        uploadLabel.textContent = 'Replace photo';
+      } else {
+        swatch.style.background = field('bg').value || 'var(--cream-mid)';
+        swatch.textContent = field('emoji').value || '🎨';
+        removeBtn.hidden = true;
+        uploadLabel.textContent = 'Upload photo';
+      }
     }
     paintSwatch();
     field('bg').addEventListener('input', paintSwatch);
     field('emoji').addEventListener('input', paintSwatch);
+
+    fileInput.addEventListener('change', function () {
+      var file = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if (file) uploadPhoto(file, field('image'), uploadWrap, uploadLabel, paintSwatch);
+    });
+    removeBtn.addEventListener('click', function () {
+      field('image').value = '';
+      paintSwatch();
+    });
 
     node.querySelector('[data-up]').addEventListener('click', function () { collect(); move(index, -1); });
     node.querySelector('[data-down]').addEventListener('click', function () { collect(); move(index, 1); });
@@ -150,6 +176,7 @@
         price: v('price'),
         emoji: v('emoji').trim(),
         description: v('description').trim(),
+        image: v('image').trim(),
         bg: v('bg').trim(),
         badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null
       });
@@ -169,7 +196,7 @@
   el.add.addEventListener('click', function () {
     collect();
     products.push({
-      id: '', name: '', category: '', price: '', emoji: '🎨', description: '',
+      id: '', name: '', category: '', price: '', emoji: '🎨', description: '', image: '',
       bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: null
     });
     render();
@@ -199,6 +226,66 @@
       })
       .catch(function () { el.save.disabled = false; setStatus('Network error while saving.', 'err'); });
   });
+
+  /* ── Image upload ──
+   * Downscale/compress in-browser (keeps photos small + web-friendly), then
+   * POST to /api/upload which stores it in Vercel Blob and returns the URL. */
+  function uploadPhoto(file, imageInput, wrap, label, repaint) {
+    if (file.size > 25 * 1024 * 1024) { setStatus('That image is very large — try one under 25MB.', 'err'); return; }
+    wrap.classList.add('is-busy');
+    var originalLabel = label.textContent;
+    label.textContent = 'Processing…';
+
+    resizeImage(file, 1280, 0.82).then(function (blob) {
+      label.textContent = 'Uploading…';
+      var form = new FormData();
+      form.append('file', blob, 'photo.jpg');
+      return fetch('/api/upload', { method: 'POST', body: form, credentials: 'same-origin' });
+    }).then(function (r) {
+      return r.json().then(function (b) { return { status: r.status, body: b }; });
+    }).then(function (res) {
+      wrap.classList.remove('is-busy');
+      label.textContent = originalLabel;
+      if (res.status === 200 && res.body.url) {
+        imageInput.value = res.body.url;
+        repaint();
+        setStatus('Photo added — remember to Save.', 'info');
+      } else if (res.status === 401) {
+        setStatus('Session expired — please log in again.', 'err');
+        show(el.login); el.password.focus();
+      } else {
+        setStatus(res.body.error || 'Upload failed.', 'err');
+      }
+    }).catch(function () {
+      wrap.classList.remove('is-busy');
+      label.textContent = originalLabel;
+      setStatus('Could not upload that image.', 'err');
+    });
+  }
+
+  function resizeImage(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function (blob) {
+          blob ? resolve(blob) : reject(new Error('encode failed'));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('load failed')); };
+      img.src = url;
+    });
+  }
 
   boot();
 })();

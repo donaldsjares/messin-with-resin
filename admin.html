@@ -81,6 +81,12 @@
     <div class="ad-prod">
       <div class="ad-prod-preview">
         <div class="ad-prod-swatch" data-swatch></div>
+        <input type="hidden" data-field="image">
+        <label class="ad-upload">
+          <input type="file" data-file accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+          <span data-upload-label>Upload photo</span>
+        </label>
+        <button type="button" class="ad-img-remove" data-img-remove hidden>Remove photo</button>
         <div class="ad-prod-moves">
           <button type="button" class="ad-move" data-up title="Move up">↑</button>
           <button type="button" class="ad-move" data-down title="Move down">↓</button>

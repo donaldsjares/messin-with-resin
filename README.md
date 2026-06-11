@@ -17,11 +17,13 @@ admin.js          Admin logic
 
 api/products.js   GET (public) / PUT (owner) products
 api/auth.js       Owner login / logout / session
+api/upload.mjs    Owner image upload → Vercel Blob (ESM, uses @vercel/blob)
 lib/auth.js       Signed-cookie session helpers (crypto, no deps)
 lib/store.js      Product storage: Upstash Redis REST in prod, file locally
 lib/products.js   Product validation / normalization
 data/products.json  Seed catalog (single source of truth for the seed)
 vercel.json       Clean URLs
+package.json      Single dependency: @vercel/blob (for image uploads)
 ```
 
 The storefront is static and renders products from data: it shows the embedded
@@ -56,17 +58,23 @@ the live storefront for all visitors.
 - **Storage** — products live in Vercel KV / Upstash Redis (via its REST API).
   Without KV configured, saves fall back to `data/products.json` on disk, which
   works under `vercel dev` but is read-only in deployed serverless.
+- **Photos** — each product can have a real image. The admin downscales/
+  compresses it in-browser, then uploads to **Vercel Blob** via `/api/upload`;
+  the returned URL is stored on the product. The storefront shows the photo
+  when present and falls back to the emoji + gradient otherwise.
 
 ### Deploying to Vercel
 
 1. Import the repo into Vercel (framework preset: **Other**).
 2. Add the **Vercel KV / Upstash** storage integration to the project. It sets
    `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically.
-3. Add environment variables (see `.env.example`):
+3. Create a **Vercel Blob** store (project → Storage → Create → Blob) for
+   product photo uploads. It sets `BLOB_READ_WRITE_TOKEN` automatically.
+4. Add environment variables (see `.env.example`):
    - `ADMIN_PASSWORD` — your login password.
    - `SESSION_SECRET` — a long random string
      (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
-4. Deploy, then visit `/admin` to log in.
+5. Deploy, then visit `/admin` to log in.
 
 ## Running locally
 
@@ -90,10 +98,9 @@ Under `vercel dev` without KV, product edits persist to `data/products.json`.
 
 These are intentionally stubbed pending real details:
 
-- **Imagery** — product cards, gallery tiles, the artist photo, and showcase
-  pieces are emoji / placeholder frames; swap in real photography when ready.
-  (The admin product editor takes an emoji/icon and a CSS background today;
-  real image uploads would be a natural follow-up via Vercel Blob.)
+- **Imagery** — product photos can now be uploaded in the admin (stored in
+  Vercel Blob). The gallery tiles, artist photo, and commission showcase are
+  still emoji / placeholder frames; swap in real photography when ready.
 - **Checkout** — the cart works and persists, but the checkout button is a
   placeholder; no payment/order backend yet.
 - **Commission form** — validates and shows a success state, but the payload

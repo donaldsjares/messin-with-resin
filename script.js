@@ -53,12 +53,26 @@
         price: Number(p.price) || 0,
         emoji: p.emoji || '🎨',
         description: p.description || '',
+        image: p.image || '',
         bg: p.bg || 'var(--cream-mid)',
         badge: p.badge && p.badge.type ? p.badge : null
       };
     });
     renderFilters();
     renderProductGrid();
+  }
+
+  /* A product's visual is either an uploaded photo (cover background) or its
+   * gradient + emoji. These helpers keep that consistent everywhere. */
+  function mediaBg(p) {
+    if (p && p.image) {
+      return "background-image:url('" + String(p.image).replace(/'/g, '%27') +
+        "');background-size:cover;background-position:center";
+    }
+    return 'background:' + (p && p.bg ? p.bg : 'var(--cream-mid)');
+  }
+  function mediaGlyph(p) {
+    return p && p.image ? '' : (p ? p.emoji : '');
   }
 
   function renderProductGrid() {
@@ -75,7 +89,7 @@
       : '';
     return '' +
       '<div class="mr-prod-card" data-category="' + escapeAttr(p.category) + '">' +
-        '<div class="mr-prod-img" style="background:' + escapeAttr(p.bg) + '">' + p.emoji + chip + '</div>' +
+        '<div class="mr-prod-img" style="' + mediaBg(p) + '">' + mediaGlyph(p) + chip + '</div>' +
         '<div class="mr-prod-body">' +
           '<div class="mr-prod-cat">' + escapeHtml(p.category) + '</div>' +
           '<div class="mr-prod-name">' + escapeHtml(p.name) + '</div>' +
@@ -387,7 +401,7 @@
       var row = document.createElement('div');
       row.className = 'mr-rec';
       row.innerHTML =
-        '<div class="mr-rec-img">' + p.emoji + '</div>' +
+        '<div class="mr-rec-img" style="' + mediaBg(p) + '">' + mediaGlyph(p) + '</div>' +
         '<div class="mr-rec-mid">' +
           '<div class="mr-rec-name">' + escapeHtml(p.name) + '</div>' +
           '<div class="mr-rec-price">From ' + formatPrice(p.price) + '</div>' +
@@ -423,7 +437,7 @@
       card.type = 'button';
       card.className = 'mr-recent-card';
       card.innerHTML =
-        '<div class="mr-recent-thumb" style="background:' + (p.bg || 'var(--cream-mid)') + '">' + p.emoji + '</div>' +
+        '<div class="mr-recent-thumb" style="' + mediaBg(p) + '">' + mediaGlyph(p) + '</div>' +
         '<div class="mr-recent-name">' + escapeHtml(p.name) + '</div>' +
         '<div class="mr-recent-price">From ' + formatPrice(p.price) + '</div>';
       card.addEventListener('click', function () { openModalForProduct(p); });
@@ -448,8 +462,11 @@
     var row = document.createElement('div');
     row.className = 'mr-cart-item' + (id === enterId ? ' mr-cart-item--enter' : '');
     row.dataset.id = id;
+    var prod = findProduct(id);
+    var thumbStyle = prod && prod.image ? mediaBg(prod) : '';
+    var thumbGlyph = prod && prod.image ? '' : item.emoji;
     row.innerHTML =
-      '<div class="mr-cart-item-img">' + item.emoji + '</div>' +
+      '<div class="mr-cart-item-img" style="' + thumbStyle + '">' + thumbGlyph + '</div>' +
       '<div class="mr-cart-item-mid">' +
         '<div class="mr-cart-item-name">' + escapeHtml(item.name) + '</div>' +
         '<div class="mr-cart-item-price">' + formatPrice(item.price) + ' each</div>' +
@@ -590,7 +607,8 @@
     modalItem = { id: p.id, name: p.name, price: p.price, emoji: p.emoji };
     modalQty = 1;
 
-    els.modalMedia.textContent = p.emoji;
+    els.modalMedia.textContent = mediaGlyph(p);
+    els.modalMedia.style.cssText = p.image ? mediaBg(p) : '';
     els.modalCat.textContent = p.category;
     els.modalName.textContent = p.name;
     els.modalPrice.textContent = 'From ' + formatPrice(p.price);
