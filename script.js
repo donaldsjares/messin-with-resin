@@ -903,7 +903,8 @@
   }
 
   /* ── Commission form modal ── */
-  function openForm() {
+  function openForm(e) {
+    if (e && e.preventDefault) e.preventDefault();
     closeMenu();
     resetForm();
     els.formModal.classList.add('is-open');
