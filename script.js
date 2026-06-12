@@ -6,7 +6,6 @@
 
   var STORAGE_KEY = 'mwr-cart-v3';
   var RECENT_KEY = 'mwr-recent-v2';
-  var FREE_SHIPPING_THRESHOLD = 50;
   var TOAST_CAP = 3;       // max toasts visible at once
   var RECENT_MAX = 8;      // recently-viewed items kept
   var REC_MAX = 3;         // cart recommendations shown
@@ -249,9 +248,6 @@
     cartFoot: document.getElementById('mr-cart-foot'),
     cartClear: document.getElementById('mr-cart-clear'),
     checkout: document.getElementById('mr-cart-checkout'),
-    shipWrap: document.querySelector('.mr-ship'),
-    shipMsg: document.querySelector('[data-ship-msg]'),
-    shipFill: document.querySelector('[data-ship-fill]'),
     hamburger: document.getElementById('mr-hamburger'),
     navLinks: document.getElementById('mr-nav-links'),
     toasts: document.getElementById('mr-toasts'),
@@ -465,7 +461,6 @@
     var total = cartTotal();
     var totalEl = document.querySelector('[data-cart-total]');
     if (totalEl) totalEl.textContent = formatPrice(total);
-    updateShipping(total);
     renderRecs(isEmpty);
   }
 
@@ -531,19 +526,6 @@
       card.addEventListener('click', function () { openModalForProduct(p); });
       els.recentStrip.appendChild(card);
     });
-  }
-
-  function updateShipping(total) {
-    if (!els.shipWrap) return;
-    var remaining = FREE_SHIPPING_THRESHOLD - total;
-    els.shipFill.style.width = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100) + '%';
-    if (remaining <= 0) {
-      els.shipWrap.classList.add('is-unlocked');
-      els.shipMsg.innerHTML = '🎉 You\'ve unlocked <em>free shipping!</em>';
-    } else {
-      els.shipWrap.classList.remove('is-unlocked');
-      els.shipMsg.innerHTML = 'You\'re <em>' + formatPrice(remaining) + '</em> away from free shipping!';
-    }
   }
 
   function cartItemOptionsHTML(options) {

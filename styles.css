@@ -266,14 +266,6 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-cart-clear { display: block; width: 100%; margin-top: 10px; background: none; border: none; color: var(--ink-light); font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: underline; }
 .mr-cart-clear:hover { color: var(--rose); }
 
-/* Free-shipping progress */
-.mr-ship { margin-bottom: 16px; }
-.mr-ship-msg { font-size: 12px; font-weight: 600; color: var(--ink-mid); margin-bottom: 8px; }
-.mr-ship-msg em { font-style: normal; color: var(--rose); }
-.mr-ship-track { height: 6px; border-radius: 100px; background: var(--rose-pale); overflow: hidden; }
-.mr-ship-fill { height: 100%; width: 0; border-radius: 100px; background: linear-gradient(90deg, var(--rose-light), var(--rose)); transition: width 0.4s cubic-bezier(0.22,1,0.36,1); }
-.mr-ship.is-unlocked .mr-ship-fill { background: linear-gradient(90deg, #34d399, #10b981); }
-
 /* ── CART RECOMMENDATIONS ── */
 .mr-cart-recs { padding: 18px 24px 8px; border-top: 1px solid var(--border); }
 .mr-cart-recs[hidden] { display: none; }
