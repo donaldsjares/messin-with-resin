@@ -102,7 +102,7 @@
     if (!grid) return;
     var feat = catalog.filter(function (p) { return p.featured; });
     if (!feat.length) feat = catalog.slice();
-    grid.innerHTML = feat.slice(0, 3).map(productCardHTML).join('');
+    grid.innerHTML = feat.slice(0, 4).map(productCardHTML).join('');
   }
 
   /* ── Editable section images (hero / about / commission) ── */
