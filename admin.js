@@ -19,8 +19,15 @@
     importBtn: document.getElementById('ad-import'),
     status: document.getElementById('ad-status'),
     logout: document.getElementById('ad-logout'),
-    template: document.getElementById('ad-prod-template')
+    template: document.getElementById('ad-prod-template'),
+    siteSave: document.getElementById('ad-site-save'),
+    siteStatus: document.getElementById('ad-site-status')
   };
+
+  function setSiteStatus(msg, kind) {
+    el.siteStatus.textContent = msg || '';
+    el.siteStatus.className = 'ad-status' + (kind ? ' is-' + kind : '');
+  }
 
   function show(section) {
     [el.loading, el.notConfigured, el.login, el.editor].forEach(function (s) { s.hidden = true; });
@@ -70,6 +77,7 @@
   /* ── Editor ── */
   function loadEditor() {
     show(el.editor);
+    loadSite();
     setStatus('Loading products…', 'info');
     api('/api/products').then(function (r) { return r.json(); }).then(function (data) {
       products = (data.products || []).map(clone);
@@ -83,7 +91,8 @@
       id: p.id, name: p.name, category: p.category || '', price: p.price,
       emoji: p.emoji || '🎨', description: p.description || '', image: p.image || '',
       bg: p.bg || 'linear-gradient(135deg,#fce7f3,#ede9fe)',
-      badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null
+      badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null,
+      featured: !!p.featured
     };
   }
 
@@ -113,6 +122,7 @@
     field('badgeType').value = p.badge ? p.badge.type : '';
     field('badgeLabel').value = p.badge ? p.badge.label : '';
     field('image').value = p.image || '';
+    field('featured').checked = !!p.featured;
 
     var fileInput = node.querySelector('[data-file]');
     var uploadWrap = node.querySelector('.ad-upload');
@@ -170,6 +180,7 @@
         return f ? f.value : '';
       }
       var badgeType = v('badgeType');
+      var featuredEl = card.querySelector('[data-field="featured"]');
       next.push({
         id: products[i] ? products[i].id : '',
         name: v('name').trim(),
@@ -179,7 +190,8 @@
         description: v('description').trim(),
         image: v('image').trim(),
         bg: v('bg').trim(),
-        badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null
+        badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null,
+        featured: !!(featuredEl && featuredEl.checked)
       });
     });
     products = next;
@@ -198,7 +210,7 @@
     collect();
     products.push({
       id: '', name: '', category: '', price: '', emoji: '🎨', description: '', image: '',
-      bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: null
+      bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: null, featured: false
     });
     render();
     var cards = el.list.querySelectorAll('.ad-prod');
@@ -252,40 +264,128 @@
   });
 
   /* ── Image upload ──
-   * Downscale/compress in-browser (keeps photos small + web-friendly), then
-   * POST to /api/upload which stores it in Vercel Blob and returns the URL. */
-  function uploadPhoto(file, imageInput, wrap, label, repaint) {
-    if (file.size > 25 * 1024 * 1024) { setStatus('That image is very large — try one under 25MB.', 'err'); return; }
-    wrap.classList.add('is-busy');
-    var originalLabel = label.textContent;
-    label.textContent = 'Processing…';
-
-    resizeImage(file, 1280, 0.82).then(function (blob) {
-      label.textContent = 'Uploading…';
+   * Downscale/compress in-browser, then POST to /api/upload (Vercel Blob).
+   * Returns a Promise that resolves to the stored image URL. */
+  function uploadImageFile(file) {
+    if (file.size > 25 * 1024 * 1024) return Promise.reject(new Error('That image is very large — try one under 25MB.'));
+    return resizeImage(file, 1280, 0.82).then(function (blob) {
       var form = new FormData();
       form.append('file', blob, 'photo.jpg');
       return fetch('/api/upload', { method: 'POST', body: form, credentials: 'same-origin' });
     }).then(function (r) {
       return r.json().then(function (b) { return { status: r.status, body: b }; });
     }).then(function (res) {
-      wrap.classList.remove('is-busy');
-      label.textContent = originalLabel;
-      if (res.status === 200 && res.body.url) {
-        imageInput.value = res.body.url;
-        repaint();
-        setStatus('Photo added — remember to Save.', 'info');
-      } else if (res.status === 401) {
-        setStatus('Session expired — please log in again.', 'err');
-        show(el.login); el.password.focus();
-      } else {
-        setStatus(res.body.error || 'Upload failed.', 'err');
-      }
-    }).catch(function () {
-      wrap.classList.remove('is-busy');
-      label.textContent = originalLabel;
-      setStatus('Could not upload that image.', 'err');
+      if (res.status === 200 && res.body.url) return res.body.url;
+      if (res.status === 401) { var e = new Error('Session expired — please log in again.'); e.code = 401; throw e; }
+      throw new Error(res.body.error || 'Upload failed.');
     });
   }
+
+  function uploadPhoto(file, imageInput, wrap, label, repaint) {
+    wrap.classList.add('is-busy');
+    var originalLabel = label.textContent;
+    label.textContent = 'Uploading…';
+    uploadImageFile(file).then(function (url) {
+      imageInput.value = url;
+      repaint();
+      setStatus('Photo added — remember to Save.', 'info');
+    }).catch(function (e) {
+      if (e.code === 401) { setStatus(e.message, 'err'); show(el.login); el.password.focus(); }
+      else { setStatus(e.message || 'Could not upload that image.', 'err'); }
+    }).then(function () {
+      wrap.classList.remove('is-busy');
+      label.textContent = originalLabel;
+    });
+  }
+
+  /* ── Site-section images (hero / about / commission) ── */
+  function siteItems() {
+    return Array.prototype.slice.call(document.querySelectorAll('.ad-site-item'));
+  }
+
+  function paintSiteItem(item) {
+    var url = item.querySelector('[data-site-field]').value;
+    var preview = item.querySelector('[data-site-preview]');
+    var label = item.querySelector('[data-site-upload-label]');
+    var removeBtn = item.querySelector('[data-site-remove]');
+    if (url) {
+      preview.style.backgroundImage = "url('" + url.replace(/'/g, '%27') + "')";
+      preview.classList.add('has-image');
+      label.textContent = 'Replace';
+      removeBtn.hidden = false;
+    } else {
+      preview.style.backgroundImage = '';
+      preview.classList.remove('has-image');
+      label.textContent = 'Upload';
+      removeBtn.hidden = true;
+    }
+  }
+
+  function setupSite() {
+    siteItems().forEach(function (item) {
+      var field = item.querySelector('[data-site-field]');
+      var fileInput = item.querySelector('[data-site-file]');
+      var wrap = item.querySelector('.ad-upload');
+      var label = item.querySelector('[data-site-upload-label]');
+      var removeBtn = item.querySelector('[data-site-remove]');
+
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        fileInput.value = '';
+        if (!file) return;
+        wrap.classList.add('is-busy');
+        var orig = label.textContent;
+        label.textContent = 'Uploading…';
+        uploadImageFile(file).then(function (url) {
+          field.value = url;
+          paintSiteItem(item);
+          setSiteStatus('Image added — click Save site images.', 'info');
+        }).catch(function (e) {
+          if (e.code === 401) { setSiteStatus(e.message, 'err'); show(el.login); el.password.focus(); }
+          else { setSiteStatus(e.message || 'Could not upload that image.', 'err'); }
+        }).then(function () {
+          wrap.classList.remove('is-busy');
+          label.textContent = field.value ? 'Replace' : orig;
+        });
+      });
+
+      removeBtn.addEventListener('click', function () {
+        field.value = '';
+        paintSiteItem(item);
+        setSiteStatus('Image cleared — click Save site images.', 'info');
+      });
+    });
+  }
+
+  function loadSite() {
+    api('/api/site').then(function (r) { return r.json(); }).then(function (data) {
+      siteItems().forEach(function (item) {
+        var key = item.dataset.site;
+        item.querySelector('[data-site-field]').value = (data && data[key]) || '';
+        paintSiteItem(item);
+      });
+    }).catch(function () { /* ignore */ });
+  }
+
+  el.siteSave.addEventListener('click', function () {
+    var payload = {};
+    siteItems().forEach(function (item) {
+      payload[item.dataset.site] = item.querySelector('[data-site-field]').value.trim();
+    });
+    el.siteSave.disabled = true;
+    setSiteStatus('Saving…', 'info');
+    api('/api/site', { method: 'PUT', body: JSON.stringify(payload) })
+      .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+      .then(function (res) {
+        el.siteSave.disabled = false;
+        if (res.status === 200) setSiteStatus('Saved! Section images are live.', 'ok');
+        else if (res.status === 401) { setSiteStatus('Session expired — please log in again.', 'err'); show(el.login); el.password.focus(); }
+        else setSiteStatus(res.body.error || 'Save failed.', 'err');
+      })
+      .catch(function () { el.siteSave.disabled = false; setSiteStatus('Network error while saving.', 'err'); });
+  });
+
+  setupSite();
 
   function resizeImage(file, maxDim, quality) {
     return new Promise(function (resolve, reject) {

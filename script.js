@@ -55,11 +55,15 @@
         description: p.description || '',
         image: p.image || '',
         bg: p.bg || 'var(--cream-mid)',
-        badge: p.badge && p.badge.type ? p.badge : null
+        badge: p.badge && p.badge.type ? p.badge : null,
+        featured: !!p.featured
       };
     });
     renderFilters();
     renderProductGrid();
+    renderFeatured();
+    bindProductCards();
+    applyFilter(activeFilter);
   }
 
   /* A product's visual is either an uploaded photo (cover background) or its
@@ -79,8 +83,37 @@
     var grid = document.getElementById('mr-prod-grid');
     if (!grid) return;
     grid.innerHTML = catalog.map(productCardHTML).join('');
-    applyFilter(activeFilter);
-    bindProductCards();
+  }
+
+  /* Homepage "Featured" teaser: products flagged featured (up to 4),
+   * falling back to the first few if none are flagged. */
+  function renderFeatured() {
+    var grid = document.getElementById('mr-featured-grid');
+    if (!grid) return;
+    var feat = catalog.filter(function (p) { return p.featured; });
+    if (!feat.length) feat = catalog.slice();
+    grid.innerHTML = feat.slice(0, 3).map(productCardHTML).join('');
+  }
+
+  /* ── Editable section images (hero / about / commission) ── */
+  function applySiteImages() {
+    if (!window.fetch) return;
+    fetch('/api/site', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (s) {
+        if (!s) return;
+        setSectionImage('mr-hero-frame', s.heroImage);
+        setSectionImage('mr-about-frame', s.aboutImage);
+        setSectionImage('mr-comm-circle', s.commissionImage);
+      })
+      .catch(function () { /* no backend — keep placeholder emoji */ });
+  }
+
+  function setSectionImage(id, url) {
+    var el = document.getElementById(id);
+    if (!el || !url) return;
+    el.style.backgroundImage = "url('" + String(url).replace(/'/g, '%27') + "')";
+    el.classList.add('mr-has-image');
   }
 
   function productCardHTML(p) {
@@ -974,6 +1007,7 @@
 
     renderCart();
     renderRecentlyViewed();
+    applySiteImages();
     setupReveal();
     setupScrollWatchers();
   }

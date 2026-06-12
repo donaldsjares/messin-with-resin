@@ -455,3 +455,9 @@ body.mr-no-scroll { overflow: hidden; }
 @media (max-width: 1024px) { .mr-how-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) { .mr-how { padding: 64px 32px; } }
 @media (max-width: 560px) { .mr-how { padding: 56px 24px; } .mr-how-grid { grid-template-columns: 1fr; } }
+
+/* ── EDITABLE SECTION IMAGES (set by admin via /api/site) ── */
+.mr-hero-img-frame.mr-has-image,
+.mr-comm-circle.mr-has-image { font-size: 0; background-size: cover; background-position: center; }
+.mr-about-frame.mr-has-image { background-size: cover; background-position: center; }
+.mr-about-frame.mr-has-image > * { display: none; }

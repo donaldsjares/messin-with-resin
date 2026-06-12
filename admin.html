@@ -64,7 +64,40 @@
 
     <!-- Editor -->
     <section id="ad-editor" hidden>
-      <h1 class="ad-h1">Manage <em>products</em></h1>
+
+      <!-- Site images -->
+      <h1 class="ad-h1">Site <em>images</em></h1>
+      <p class="ad-sub">Photos that appear in the homepage sections. Upload, then click <strong>Save site images</strong>.</p>
+      <div class="ad-site-grid">
+        <div class="ad-site-item" data-site="heroImage">
+          <div class="ad-site-label">Hero image</div>
+          <div class="ad-site-preview" data-site-preview></div>
+          <input type="hidden" data-site-field>
+          <label class="ad-upload"><input type="file" data-site-file accept="image/jpeg,image/png,image/webp,image/gif" hidden><span data-site-upload-label>Upload</span></label>
+          <button type="button" class="ad-img-remove" data-site-remove hidden>Remove</button>
+        </div>
+        <div class="ad-site-item" data-site="aboutImage">
+          <div class="ad-site-label">Artist / About photo</div>
+          <div class="ad-site-preview" data-site-preview></div>
+          <input type="hidden" data-site-field>
+          <label class="ad-upload"><input type="file" data-site-file accept="image/jpeg,image/png,image/webp,image/gif" hidden><span data-site-upload-label>Upload</span></label>
+          <button type="button" class="ad-img-remove" data-site-remove hidden>Remove</button>
+        </div>
+        <div class="ad-site-item" data-site="commissionImage">
+          <div class="ad-site-label">Commission showcase</div>
+          <div class="ad-site-preview" data-site-preview></div>
+          <input type="hidden" data-site-field>
+          <label class="ad-upload"><input type="file" data-site-file accept="image/jpeg,image/png,image/webp,image/gif" hidden><span data-site-upload-label>Upload</span></label>
+          <button type="button" class="ad-img-remove" data-site-remove hidden>Remove</button>
+        </div>
+      </div>
+      <div class="ad-toolbar">
+        <button class="ad-btn" id="ad-site-save">Save site images</button>
+        <span class="ad-spacer"></span>
+        <span class="ad-status" id="ad-site-status"></span>
+      </div>
+
+      <h1 class="ad-h1" style="margin-top:44px;">Manage <em>products</em></h1>
       <p class="ad-sub">Add, edit, reorder, or remove pieces. Click <strong>Save changes</strong> to publish to the live site.</p>
       <div class="ad-toolbar">
         <button class="ad-btn-soft" id="ad-add">+ Add product</button>
@@ -132,6 +165,7 @@
           <input type="text" data-field="badgeLabel" placeholder="🔥 Bestseller">
         </div>
         <div class="ad-prod-foot">
+          <label class="ad-check"><input type="checkbox" data-field="featured"> ⭐ Feature on homepage</label>
           <button type="button" class="ad-del" data-del>Delete product</button>
         </div>
       </div>

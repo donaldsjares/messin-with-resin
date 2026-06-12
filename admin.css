@@ -70,3 +70,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); c
   .ad-prod-preview { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; }
   .ad-prod-fields { grid-template-columns: 1fr; }
 }
+
+/* Featured checkbox */
+.ad-prod-foot { align-items: center; gap: 16px; }
+.ad-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink-mid); cursor: pointer; margin-right: auto; }
+.ad-check input { width: 15px; height: 15px; accent-color: var(--rose); cursor: pointer; }
+
+/* Site images panel */
+.ad-site-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.ad-site-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.ad-site-label { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.ad-site-preview { width: 100%; height: 130px; border-radius: 12px; border: 1px solid var(--border); background: var(--cream-mid) center/cover no-repeat; display: flex; align-items: center; justify-content: center; font-size: 36px; color: var(--ink-light); }
+.ad-site-preview::after { content: 'No image'; font-size: 12px; }
+.ad-site-preview.has-image::after { content: ''; }
+@media (max-width: 640px) { .ad-site-grid { grid-template-columns: 1fr; } }
