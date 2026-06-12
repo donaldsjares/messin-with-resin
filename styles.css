@@ -477,3 +477,7 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-footer-col li a { color: inherit; text-decoration: none; transition: color 0.15s; }
 .mr-footer-col li a:hover { color: var(--rose-light); }
 .mr-footer-bottom { position: relative; z-index: 195; } /* keep above floating back-to-top */
+
+/* ── SOCIAL LINKS ── */
+.mr-footer-social-btn { text-decoration: none; transition: background 0.15s, transform 0.15s; }
+.mr-footer-social-btn:hover { background: var(--rose); color: #fff; transform: translateY(-1px); }
