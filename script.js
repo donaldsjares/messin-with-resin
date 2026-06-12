@@ -137,6 +137,20 @@
     img.alt = 'Messin With Resin';
     logo.innerHTML = '';
     logo.appendChild(img);
+    setFavicon(url);
+  }
+
+  /* Use the uploaded logo as the browser-tab icon too. */
+  function setFavicon(url) {
+    if (!url) return;
+    var link = document.querySelector('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = '';
+    link.href = url;
   }
 
   function productCardHTML(p) {
