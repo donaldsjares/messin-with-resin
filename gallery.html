@@ -37,7 +37,7 @@
       </div>
     </a>
     <div class="mr-nav-links" id="mr-nav-links">
-      <a href="/#shop">Shop</a>
+      <a href="#shop">Shop</a>
       <a href="/#commissions">Commissions</a>
       <a href="/gallery" class="is-active">Gallery</a>
       <a href="/#about">About</a>
@@ -45,33 +45,32 @@
     </div>
     <div class="mr-nav-right">
       <button class="mr-cart" id="mr-cart-toggle" aria-label="Open cart">🛒 <span>Cart (<span class="mr-cart-count" data-cart-count>0</span>)</span></button>
-      <a class="mr-btn" href="/#shop" style="display:inline-flex;align-items:center;text-decoration:none;">Shop Now</a>
+      <button class="mr-btn" data-scroll-to="#shop">Shop Now</button>
       <button class="mr-hamburger" id="mr-hamburger" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
   </nav>
 
-  <!-- GALLERY -->
-  <section class="mr-gallery" id="gallery">
+  <!-- PRODUCT CATALOG -->
+  <section class="mr-products" id="shop">
     <div class="mr-section-header">
       <div>
         <div class="mr-eyebrow">The Gallery</div>
-        <h2 class="mr-h2" style="margin-bottom:8px;">A few of our <em>favorites</em></h2>
-        <p class="mr-body" style="margin-bottom:0;max-width:520px;">A peek at pieces we've poured — every one handmade and one-of-a-kind. Click any piece to take a closer look.</p>
+        <h2 class="mr-h2" style="margin-bottom:8px;">Every <em>piece</em> we make</h2>
+        <p class="mr-body" style="margin-bottom:0;max-width:540px;">Browse the full collection — each one handmade and one-of-a-kind. Filter by category, tap a piece for details, and customize your colors at checkout.</p>
       </div>
-      <button class="mr-btn-soft" style="font-size:13.5px;padding:11px 24px;" data-open-form>Commission Something Like This →</button>
+      <button class="mr-btn-soft" style="font-size:13.5px;padding:11px 24px;" data-open-form>Commission a Custom Piece →</button>
     </div>
-    <div class="mr-gallery-grid" id="mr-gallery-grid">
-      <button class="mr-gallery-tile mr-gtile-tall" style="background:linear-gradient(160deg,#fce7f3,#f5d0fe);" data-emoji="🦌" data-caption="Custom holiday reindeer in blush & lilac">🦌</button>
-      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#e0f2fe,#bae6fd);" data-emoji="💳" data-caption="Ocean-swirl phone & cardholder">💳</button>
-      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fef9c3,#fde68a);" data-emoji="🐝" data-caption="Honeybee figurine, hand-finished">🐝</button>
-      <button class="mr-gallery-tile mr-gtile-wide" style="background:linear-gradient(160deg,#d1fae5,#a7f3d0);" data-emoji="🌿" data-caption="Marbled mini planter trio">🌿</button>
-      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fce7f3,#ede9fe);" data-emoji="🩷" data-caption="Baby footprint heart ornament">🩷</button>
-      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#fef3c7,#fed7aa);" data-emoji="🗝️" data-caption="Initial keychains, made to order">🗝️</button>
-      <button class="mr-gallery-tile mr-gtile-tall" style="background:linear-gradient(160deg,#ede9fe,#ddd6fe);" data-emoji="⭐" data-caption="Galaxy star décor accent">⭐</button>
-      <button class="mr-gallery-tile" style="background:linear-gradient(160deg,#ffe4e6,#fecdd3);" data-emoji="🐄" data-caption="Spotted cow figurine — a customer favorite">🐄</button>
-    </div>
+    <div class="mr-filters" id="mr-filters"></div>
+    <div class="mr-prod-empty" id="mr-prod-empty" hidden>No pieces in this category yet — check back soon!</div>
+    <div class="mr-prod-grid" id="mr-prod-grid"></div>
+  </section>
+
+  <!-- RECENTLY VIEWED -->
+  <section class="mr-recent" id="mr-recent" hidden>
+    <div class="mr-eyebrow">Recently viewed</div>
+    <div class="mr-recent-strip" id="mr-recent-strip"></div>
   </section>
 
   <!-- FOOTER -->
@@ -121,7 +120,7 @@
     <div class="mr-cart-empty" id="mr-cart-empty">
       <div class="mr-cart-empty-icon">🛒</div>
       <p>Your cart is empty.</p>
-      <a class="mr-btn-soft" href="/#shop" style="display:inline-block;text-decoration:none;">Browse the Collection</a>
+      <button class="mr-btn-soft" data-scroll-to="#shop" data-close-cart>Browse the Collection</button>
     </div>
     <div class="mr-cart-recs" id="mr-cart-recs" hidden>
       <div class="mr-cart-recs-title">You may also like</div>

@@ -37,7 +37,7 @@
       </div>
     </div>
     <div class="mr-nav-links" id="mr-nav-links">
-      <a href="#shop">Shop</a>
+      <a href="/gallery">Shop</a>
       <a href="#commissions">Commissions</a>
       <a href="/gallery">Gallery</a>
       <a href="#about">About</a>
@@ -45,7 +45,7 @@
     </div>
     <div class="mr-nav-right">
       <button class="mr-cart" id="mr-cart-toggle" aria-label="Open cart">🛒 <span>Cart (<span class="mr-cart-count" data-cart-count>0</span>)</span></button>
-      <button class="mr-btn" data-scroll-to="#shop">Shop Now</button>
+      <a class="mr-btn" href="/gallery" style="display:inline-flex;align-items:center;text-decoration:none;">Shop Now</a>
       <button class="mr-hamburger" id="mr-hamburger" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -59,7 +59,7 @@
       <h1 class="mr-hero-h1">Every piece tells<br><span class="mr-hero-h1-italic">your story.</span></h1>
       <p class="mr-hero-sub">Customize your creation – pick your colors, your style, your vibe. Every single piece is handmade, one-of-a-kind, and poured with way too much love in Central Texas, then shipped straight to your door.</p>
       <div class="mr-hero-ctas">
-        <button class="mr-btn-lg" data-scroll-to="#shop">Shop the Collection</button>
+        <a class="mr-btn-lg" href="/gallery" style="display:inline-flex;align-items:center;text-decoration:none;">Shop the Collection</a>
         <button class="mr-btn-lg-soft" data-open-form>Request a Custom Piece</button>
       </div>
       <div class="mr-hero-trust">
@@ -119,26 +119,6 @@
         <div class="mr-how-desc">Carefully packaged and shipped nationwide. Free shipping on orders over $50.</div>
       </div>
     </div>
-  </section>
-
-  <!-- PRODUCTS -->
-  <section class="mr-products" id="shop">
-    <div class="mr-section-header">
-      <div>
-        <div class="mr-eyebrow">Bestsellers</div>
-        <h2 class="mr-h2" style="margin-bottom:0;">Featured <em>picks</em></h2>
-      </div>
-      <button class="mr-btn-soft" style="font-size:13.5px;padding:11px 24px;">View All Products →</button>
-    </div>
-    <div class="mr-filters" id="mr-filters"></div>
-    <div class="mr-prod-empty" id="mr-prod-empty" hidden>No pieces in this category yet — check back soon!</div>
-    <div class="mr-prod-grid" id="mr-prod-grid"></div>
-  </section>
-
-  <!-- RECENTLY VIEWED -->
-  <section class="mr-recent" id="mr-recent" hidden>
-    <div class="mr-eyebrow">Recently viewed</div>
-    <div class="mr-recent-strip" id="mr-recent-strip"></div>
   </section>
 
   <!-- REVIEWS -->
@@ -287,7 +267,7 @@
     <div class="mr-cart-empty" id="mr-cart-empty">
       <div class="mr-cart-empty-icon">🛒</div>
       <p>Your cart is empty.</p>
-      <button class="mr-btn-soft" data-scroll-to="#shop" data-close-cart>Browse the Collection</button>
+      <a class="mr-btn-soft" href="/gallery" style="display:inline-block;text-decoration:none;">Browse the Collection</a>
     </div>
     <div class="mr-cart-recs" id="mr-cart-recs" hidden>
       <div class="mr-cart-recs-title">You may also like</div>
