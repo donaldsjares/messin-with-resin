@@ -472,3 +472,8 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-legal-body a { color: var(--rose); }
 .mr-legal-updated { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-light); }
 @media (max-width: 768px) { .mr-legal { padding: 56px 28px 64px; } }
+
+/* ── FOOTER LINKS ── */
+.mr-footer-col li a { color: inherit; text-decoration: none; transition: color 0.15s; }
+.mr-footer-col li a:hover { color: var(--rose-light); }
+.mr-footer-bottom { position: relative; z-index: 195; } /* keep above floating back-to-top */
