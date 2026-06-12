@@ -461,3 +461,14 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-comm-circle.mr-has-image { font-size: 0; background-size: cover; background-position: center; }
 .mr-about-frame.mr-has-image { background-size: cover; background-position: center; }
 .mr-about-frame.mr-has-image > * { display: none; }
+
+/* ── LEGAL / TERMS PAGE ── */
+.mr-legal { background: #fff; padding: 72px 56px 88px; }
+.mr-legal-head { max-width: 760px; margin: 0 auto 40px; }
+.mr-legal-body { max-width: 760px; margin: 0 auto; }
+.mr-legal-body h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--ink); margin: 32px 0 10px; }
+.mr-legal-body h3:first-child { margin-top: 0; }
+.mr-legal-body p { font-size: 14.5px; color: var(--ink-mid); line-height: 1.85; margin-bottom: 14px; }
+.mr-legal-body a { color: var(--rose); }
+.mr-legal-updated { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-light); }
+@media (max-width: 768px) { .mr-legal { padding: 56px 28px 64px; } }
