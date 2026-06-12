@@ -115,6 +115,7 @@
         setSectionImage('mr-hero-frame', s.heroImage);
         setSectionImage('mr-about-frame', s.aboutImage);
         setSectionImage('mr-comm-circle', s.commissionImage);
+        setNavLogo(s.logoImage);
       })
       .catch(function () { /* no backend — keep placeholder emoji */ });
   }
@@ -124,6 +125,18 @@
     if (!el || !url) return;
     el.style.backgroundImage = "url('" + String(url).replace(/'/g, '%27') + "')";
     el.classList.add('mr-has-image');
+  }
+
+  /* Swap the top-bar mark + wordmark for the uploaded logo image. */
+  function setNavLogo(url) {
+    var logo = document.querySelector('.mr-logo');
+    if (!logo || !url) return;
+    var img = document.createElement('img');
+    img.className = 'mr-logo-img';
+    img.src = url;
+    img.alt = 'Messin With Resin';
+    logo.innerHTML = '';
+    logo.appendChild(img);
   }
 
   function productCardHTML(p) {

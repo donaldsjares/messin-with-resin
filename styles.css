@@ -481,3 +481,7 @@ body.mr-no-scroll { overflow: hidden; }
 /* ── SOCIAL LINKS ── */
 .mr-footer-social-btn { text-decoration: none; transition: background 0.15s, transform 0.15s; }
 .mr-footer-social-btn:hover { background: var(--rose); color: #fff; transform: translateY(-1px); }
+
+/* ── UPLOADED NAV LOGO ── */
+.mr-logo-img { height: 56px; width: auto; display: block; }
+@media (max-width: 560px) { .mr-logo-img { height: 46px; } }
