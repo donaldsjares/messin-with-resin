@@ -55,6 +55,9 @@ the live storefront for all visitors.
 - **Auth** — a single shared password (`ADMIN_PASSWORD`) exchanged for an
   HMAC-signed, HttpOnly session cookie (signed with `SESSION_SECRET`). There is
   no user database; there's exactly one owner.
+- **Brute-force protection** — failed logins are counted per IP in KV; after 5
+  failures the IP is locked out for 30 minutes (`lib/login-guard.js`). Fails
+  open if KV is unavailable so the owner can't be permanently locked out.
 - **Storage** — products live in Vercel KV / Upstash Redis (via its REST API).
   Without KV configured, saves fall back to `data/products.json` on disk, which
   works under `vercel dev` but is read-only in deployed serverless.
