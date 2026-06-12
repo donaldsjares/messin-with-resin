@@ -23,6 +23,7 @@
     { id: 'custom-keychain', name: 'Custom Keychain', category: 'Accessories', price: 12, emoji: '🗝️', description: 'Carry a little piece of art everywhere. Initials, shapes, florals — you name it, we pour it.', bg: 'linear-gradient(135deg,#fef3c7,#fed7aa)', badge: null }
   ];
   var activeFilter = 'all';
+  var requestedFilter = null; // category requested via the URL ?cat= param
 
   /* ── State ── */
   var cart = loadCart(); // { id: { name, price, emoji, qty } }
@@ -59,6 +60,15 @@
         featured: !!p.featured
       };
     });
+    // Apply a URL-requested category once its products are available.
+    if (requestedFilter) {
+      if (catalog.some(function (p) { return p.category === requestedFilter; })) {
+        activeFilter = requestedFilter;
+        requestedFilter = null;
+      } else {
+        activeFilter = 'all';
+      }
+    }
     renderFilters();
     renderProductGrid();
     renderFeatured();
@@ -900,6 +910,11 @@
   /* ── Products loader ──
    * Render the seed immediately, then override from the API when available. */
   function loadProducts() {
+    // Deep link: /gallery?cat=Animals opens with that category tab active.
+    try {
+      var cat = new URLSearchParams(location.search).get('cat');
+      if (cat) requestedFilter = cat;
+    } catch (e) { /* very old browser — default to All */ }
     setCatalog(SEED_PRODUCTS);
     if (!window.fetch) return;
     fetch('/api/products', { headers: { 'Accept': 'application/json' } })
