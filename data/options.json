@@ -1,0 +1,34 @@
+{
+  "options": [
+    {
+      "label": "Pick Your Main Color",
+      "type": "select",
+      "required": true,
+      "choices": ["White", "Black", "Red", "Yellow", "Green", "Blue", "Orange", "Brown", "Pink", "Purple", "Gray", "Teal"]
+    },
+    {
+      "label": "Special Effects",
+      "type": "select",
+      "required": true,
+      "choices": ["Glow in the Dark", "Chameleon", "Neon", "Metallic", "Chrome", "Pearl", "None"]
+    },
+    {
+      "label": "Would You Like Your Item Clear or Solid?",
+      "type": "select",
+      "required": true,
+      "choices": ["Clear", "Solid", "Combination"]
+    },
+    {
+      "label": "Accent / Metallic Additions",
+      "type": "select",
+      "required": true,
+      "choices": ["Seashells", "Stones", "Crystals", "Glitter", "Gear", "None", "Other"]
+    },
+    {
+      "label": "Kindly Provide Details on Your Desired Finished Look",
+      "type": "text",
+      "required": false,
+      "choices": []
+    }
+  ]
+}

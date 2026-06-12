@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'mwr-cart-v2';
+  var STORAGE_KEY = 'mwr-cart-v3';
   var RECENT_KEY = 'mwr-recent-v2';
   var FREE_SHIPPING_THRESHOLD = 50;
   var TOAST_CAP = 3;       // max toasts visible at once
@@ -24,6 +24,7 @@
   ];
   var activeFilter = 'all';
   var requestedFilter = null; // category requested via the URL ?cat= param
+  var productOptions = []; // global customization option groups (from /api/options)
 
   /* ── State ── */
   var cart = loadCart(); // { id: { name, price, emoji, qty } }
@@ -166,7 +167,7 @@
           '<div class="mr-prod-desc">' + escapeHtml(p.description) + '</div>' +
           '<div class="mr-prod-row">' +
             '<div class="mr-prod-price">From ' + formatPrice(p.price) + '</div>' +
-            '<button class="mr-prod-add" data-id="' + escapeAttr(p.id) + '">Add to Cart</button>' +
+            '<button class="mr-prod-add" data-id="' + escapeAttr(p.id) + '">Customize</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -182,8 +183,9 @@
       var addBtn = card.querySelector('.mr-prod-add');
       addBtn.addEventListener('click', function (e) {
         e.stopPropagation();
+        // Options are mandatory, so the add button opens the chooser modal.
         var p = findProduct(addBtn.dataset.id);
-        if (p) addWithUndo({ id: p.id, name: p.name, price: p.price, emoji: p.emoji }, 1, p.name + ' added to cart');
+        if (p) openModalForProduct(p);
       });
     });
   }
@@ -266,6 +268,7 @@
     modalInc: document.getElementById('mr-modal-inc'),
     modalAdd: document.getElementById('mr-modal-add'),
     modalShare: document.getElementById('mr-modal-share'),
+    modalOptions: document.getElementById('mr-modal-options'),
     filters: document.getElementById('mr-filters'),
     prodEmpty: document.getElementById('mr-prod-empty'),
     formModal: document.getElementById('mr-form-modal'),
@@ -339,13 +342,23 @@
   /* ── Cart operations ── */
   var enterId = null; // id of a just-added item, for the entrance animation
 
-  function addToCart(item, qty) {
+  /* Cart items are keyed by product id + chosen options, so the same product
+   * with different customizations are separate lines. */
+  function cartKey(id, options) {
+    var sig = '';
+    try { sig = JSON.stringify(options || {}); } catch (e) { sig = ''; }
+    return id + '::' + sig;
+  }
+
+  function addToCart(item, qty, options) {
     qty = qty || 1;
-    if (cart[item.id]) {
-      cart[item.id].qty += qty;
+    options = options || {};
+    var key = cartKey(item.id, options);
+    if (cart[key]) {
+      cart[key].qty += qty;
     } else {
-      cart[item.id] = { name: item.name, price: item.price, emoji: item.emoji, qty: qty };
-      enterId = item.id;
+      cart[key] = { id: item.id, name: item.name, price: item.price, emoji: item.emoji, qty: qty, options: options };
+      enterId = key;
     }
     saveCart();
     renderCart();
@@ -403,12 +416,14 @@
   }
 
   /* Add an item, then return a function that reverses exactly this add. */
-  function addWithUndo(item, qty, message) {
-    var prev = cart[item.id] ? cart[item.id].qty : null;
-    addToCart(item, qty);
+  function addWithUndo(item, qty, message, options) {
+    options = options || {};
+    var key = cartKey(item.id, options);
+    var prev = cart[key] ? cart[key].qty : null;
+    addToCart(item, qty, options);
     toast(item.emoji, message, { label: 'Undo', fn: function () {
-      if (prev === null) delete cart[item.id];
-      else cart[item.id].qty = prev;
+      if (prev === null) delete cart[key];
+      else cart[key].qty = prev;
       saveCart();
       renderCart();
     } });
@@ -457,9 +472,11 @@
   /* ── Cart recommendations ── */
   function renderRecs(cartEmpty) {
     if (!els.cartRecs) return;
+    var inCart = {};
+    Object.keys(cart).forEach(function (k) { if (cart[k].id) inCart[cart[k].id] = true; });
     var picks = [];
     for (var i = 0; i < catalog.length && picks.length < REC_MAX; i++) {
-      if (!cart[catalog[i].id]) picks.push(catalog[i]);
+      if (!inCart[catalog[i].id]) picks.push(catalog[i]);
     }
     if (cartEmpty || picks.length === 0) {
       els.cartRecs.hidden = true;
@@ -478,7 +495,8 @@
         '</div>' +
         '<button type="button" class="mr-rec-add" aria-label="Add ' + escapeHtml(p.name) + ' to cart">+</button>';
       row.querySelector('.mr-rec-add').addEventListener('click', function () {
-        addWithUndo({ id: p.id, name: p.name, price: p.price, emoji: p.emoji }, 1, p.name + ' added to cart');
+        closeDrawer();
+        openModalForProduct(p);
       });
       els.cartRecsList.appendChild(row);
     });
@@ -528,11 +546,20 @@
     }
   }
 
+  function cartItemOptionsHTML(options) {
+    if (!options) return '';
+    var keys = Object.keys(options).filter(function (k) { return options[k] && String(options[k]).trim(); });
+    if (!keys.length) return '';
+    return '<div class="mr-cart-item-opts">' + keys.map(function (k) {
+      return '<span>' + escapeHtml(k) + ': ' + escapeHtml(options[k]) + '</span>';
+    }).join('') + '</div>';
+  }
+
   function renderItem(id, item) {
     var row = document.createElement('div');
     row.className = 'mr-cart-item' + (id === enterId ? ' mr-cart-item--enter' : '');
     row.dataset.id = id;
-    var prod = findProduct(id);
+    var prod = findProduct(item.id);
     var thumbStyle = prod && prod.image ? mediaBg(prod) : '';
     var thumbGlyph = prod && prod.image ? '' : item.emoji;
     row.innerHTML =
@@ -540,6 +567,7 @@
       '<div class="mr-cart-item-mid">' +
         '<div class="mr-cart-item-name">' + escapeHtml(item.name) + '</div>' +
         '<div class="mr-cart-item-price">' + formatPrice(item.price) + ' each</div>' +
+        cartItemOptionsHTML(item.options) +
         '<div class="mr-cart-item-controls">' +
           '<div class="mr-qty">' +
             '<button type="button" data-dec aria-label="Decrease quantity">−</button>' +
@@ -684,6 +712,7 @@
     els.modalPrice.textContent = 'From ' + formatPrice(p.price);
     els.modalDesc.textContent = p.description;
     els.modalQty.textContent = modalQty;
+    renderModalOptions();
 
     recordRecentlyViewed(p.id);
 
@@ -691,6 +720,73 @@
     els.modal.setAttribute('aria-hidden', 'false');
     activateTrap(els.modal);
     els.modalAdd.focus();
+  }
+
+  /* Render the global customization option controls into the modal. */
+  function renderModalOptions() {
+    if (!els.modalOptions) return;
+    els.modalOptions.innerHTML = productOptions.map(function (g) {
+      var req = g.required ? ' data-opt-required="1"' : '';
+      var star = g.required ? ' <span class="mr-opt-req">*</span>' : '';
+      var control;
+      if (g.type === 'text') {
+        control = '<textarea data-opt rows="2" placeholder="Optional — tell us more"></textarea>';
+      } else {
+        control = '<select data-opt><option value="">Choose…</option>' +
+          g.choices.map(function (c) { return '<option>' + escapeHtml(c) + '</option>'; }).join('') +
+          '</select>';
+      }
+      return '<div class="mr-opt"' + req + ' data-opt-label="' + escapeAttr(g.label) + '">' +
+        '<label>' + escapeHtml(g.label) + star + '</label>' +
+        control +
+        '<div class="mr-opt-err">Please make a selection.</div>' +
+      '</div>';
+    }).join('');
+    // Clear error state on change
+    els.modalOptions.querySelectorAll('[data-opt]').forEach(function (ctrl) {
+      ctrl.addEventListener('change', function () {
+        ctrl.closest('.mr-opt').classList.remove('has-error');
+      });
+    });
+  }
+
+  /* Validate required options; returns the chosen { label: value } map, or
+   * null if a required option is missing (errors are shown inline). */
+  function collectModalOptions() {
+    if (!els.modalOptions) return {};
+    var groups = els.modalOptions.querySelectorAll('.mr-opt');
+    var out = {};
+    var ok = true;
+    var firstBad = null;
+    groups.forEach(function (g) {
+      var ctrl = g.querySelector('[data-opt]');
+      var val = ctrl ? String(ctrl.value).trim() : '';
+      var required = g.getAttribute('data-opt-required') === '1';
+      if (required && !val) {
+        g.classList.add('has-error');
+        ok = false;
+        if (!firstBad) firstBad = ctrl;
+      } else {
+        g.classList.remove('has-error');
+      }
+      if (val) out[g.getAttribute('data-opt-label')] = val;
+    });
+    if (!ok) {
+      if (firstBad) firstBad.focus();
+      return null;
+    }
+    return out;
+  }
+
+  /* Load the global option groups (color, effects, etc.). */
+  function loadOptions() {
+    if (!window.fetch) return;
+    fetch('/api/options', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data && Array.isArray(data.options)) productOptions = data.options;
+      })
+      .catch(function () { /* no backend — modal shows no extra options */ });
   }
 
   function closeModal() {
@@ -959,6 +1055,7 @@
   /* ── Wire up events ── */
   function init() {
     loadProducts();
+    loadOptions();
 
     // Modal controls
     els.modalDec.addEventListener('click', function () { setModalQty(-1); });
@@ -966,10 +1063,12 @@
     els.modalShare.addEventListener('click', shareProduct);
     els.modalAdd.addEventListener('click', function () {
       if (!modalItem) return;
+      var options = collectModalOptions();
+      if (options === null) return; // a required option is missing — stay open
       var added = modalQty;
       var item = modalItem;
       closeModal();
-      addWithUndo(item, added, added + '× ' + item.name + ' added to cart');
+      addWithUndo(item, added, added + '× ' + item.name + ' added to cart', options);
     });
     els.modal.querySelectorAll('[data-modal-close]').forEach(function (el) {
       el.addEventListener('click', closeModal);

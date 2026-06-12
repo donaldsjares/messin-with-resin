@@ -114,6 +114,17 @@
         <span class="ad-status" id="ad-status"></span>
       </div>
       <div class="ad-list" id="ad-list"></div>
+
+      <!-- Product customization options -->
+      <h1 class="ad-h1" style="margin-top:44px;">Product <em>options</em></h1>
+      <p class="ad-sub">The customization questions shown when a customer clicks a product. These apply to every product. Click <strong>Save options</strong> to publish.</p>
+      <div class="ad-toolbar">
+        <button class="ad-btn-soft" id="ad-opt-add">+ Add option</button>
+        <button class="ad-btn" id="ad-opt-save">Save options</button>
+        <span class="ad-spacer"></span>
+        <span class="ad-status" id="ad-opt-status"></span>
+      </div>
+      <div class="ad-list" id="ad-opt-list"></div>
     </section>
 
   </main>
@@ -175,6 +186,36 @@
           <label class="ad-check"><input type="checkbox" data-field="featured"> ⭐ Feature on homepage</label>
           <button type="button" class="ad-del" data-del>Delete product</button>
         </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="ad-opt-template">
+    <div class="ad-opt">
+      <div class="ad-opt-head">
+        <div class="ad-field ad-opt-label">
+          <label>Question / label</label>
+          <input type="text" data-opt="label" placeholder="e.g. Pick Your Main Color">
+        </div>
+        <div class="ad-field ad-opt-type">
+          <label>Answer type</label>
+          <select data-opt="type">
+            <option value="select">Choices (dropdown)</option>
+            <option value="text">Free text box</option>
+          </select>
+        </div>
+        <div class="ad-opt-moves">
+          <button type="button" class="ad-move" data-opt-up title="Move up">↑</button>
+          <button type="button" class="ad-move" data-opt-down title="Move down">↓</button>
+        </div>
+      </div>
+      <div class="ad-field ad-opt-choices">
+        <label>Choices <span class="ad-opt-hint">— one per line</span></label>
+        <textarea data-opt="choices" rows="4" placeholder="White&#10;Black&#10;Red"></textarea>
+      </div>
+      <div class="ad-opt-foot">
+        <label class="ad-check"><input type="checkbox" data-opt="required"> Required before adding to cart</label>
+        <button type="button" class="ad-del" data-opt-del>Delete option</button>
       </div>
     </div>
   </template>

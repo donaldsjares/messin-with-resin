@@ -486,3 +486,20 @@ body.mr-no-scroll { overflow: hidden; }
 /* ── UPLOADED NAV LOGO ── */
 .mr-logo-img { height: 56px; width: auto; display: block; }
 @media (max-width: 560px) { .mr-logo-img { height: 46px; } }
+
+/* ── PRODUCT OPTIONS (quick-view modal) ── */
+.mr-modal-info { overflow-y: auto; max-height: 90vh; }
+.mr-modal-options { display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px; }
+.mr-opt { display: flex; flex-direction: column; gap: 6px; }
+.mr-opt > label { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.mr-opt-req { color: var(--rose); }
+.mr-opt select, .mr-opt textarea { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--ink); background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; outline: none; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; }
+.mr-opt textarea { resize: vertical; min-height: 64px; line-height: 1.55; }
+.mr-opt select:focus, .mr-opt textarea:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(255,107,107,0.12); }
+.mr-opt-err { font-size: 11.5px; color: #dc2626; display: none; }
+.mr-opt.has-error select, .mr-opt.has-error textarea { border-color: #dc2626; }
+.mr-opt.has-error .mr-opt-err { display: block; }
+
+/* Chosen options shown on a cart line */
+.mr-cart-item-opts { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 2px; }
+.mr-cart-item-opts span { font-size: 11px; color: var(--ink-light); line-height: 1.4; }

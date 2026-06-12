@@ -3,6 +3,7 @@
   'use strict';
 
   var products = [];
+  var optionGroups = [];
 
   var el = {
     loading: document.getElementById('ad-loading'),
@@ -21,8 +22,18 @@
     logout: document.getElementById('ad-logout'),
     template: document.getElementById('ad-prod-template'),
     siteSave: document.getElementById('ad-site-save'),
-    siteStatus: document.getElementById('ad-site-status')
+    siteStatus: document.getElementById('ad-site-status'),
+    optList: document.getElementById('ad-opt-list'),
+    optAdd: document.getElementById('ad-opt-add'),
+    optSave: document.getElementById('ad-opt-save'),
+    optStatus: document.getElementById('ad-opt-status'),
+    optTemplate: document.getElementById('ad-opt-template')
   };
+
+  function setOptStatus(msg, kind) {
+    el.optStatus.textContent = msg || '';
+    el.optStatus.className = 'ad-status' + (kind ? ' is-' + kind : '');
+  }
 
   function setSiteStatus(msg, kind) {
     el.siteStatus.textContent = msg || '';
@@ -78,6 +89,7 @@
   function loadEditor() {
     show(el.editor);
     loadSite();
+    loadOptions();
     setStatus('Loading products…', 'info');
     api('/api/products').then(function (r) { return r.json(); }).then(function (data) {
       products = (data.products || []).map(clone);
@@ -386,6 +398,121 @@
   });
 
   setupSite();
+
+  /* ── Product customization options ── */
+  function loadOptions() {
+    setOptStatus('Loading…', 'info');
+    api('/api/options').then(function (r) { return r.json(); }).then(function (data) {
+      optionGroups = (data.options || []).map(cloneOption);
+      renderOptions();
+      setOptStatus('');
+    }).catch(function () { setOptStatus('Could not load options.', 'err'); });
+  }
+
+  function cloneOption(g) {
+    return {
+      label: g.label || '',
+      type: g.type === 'text' ? 'text' : 'select',
+      required: !!g.required,
+      choices: Array.isArray(g.choices) ? g.choices.slice() : []
+    };
+  }
+
+  function renderOptions() {
+    el.optList.innerHTML = '';
+    if (!optionGroups.length) {
+      var empty = document.createElement('div');
+      empty.className = 'ad-empty';
+      empty.textContent = 'No options yet — click “Add option” to create one.';
+      el.optList.appendChild(empty);
+      return;
+    }
+    optionGroups.forEach(function (g, i) { el.optList.appendChild(buildOptionCard(g, i)); });
+  }
+
+  function buildOptionCard(g, index) {
+    var node = el.optTemplate.content.firstElementChild.cloneNode(true);
+    function f(name) { return node.querySelector('[data-opt="' + name + '"]'); }
+
+    f('label').value = g.label || '';
+    f('type').value = g.type || 'select';
+    f('required').checked = !!g.required;
+    f('choices').value = (g.choices || []).join('\n');
+
+    function paintType() { node.classList.toggle('is-text', f('type').value === 'text'); }
+    paintType();
+    f('type').addEventListener('change', paintType);
+
+    node.querySelector('[data-opt-up]').addEventListener('click', function () { collectOptions(); moveOption(index, -1); });
+    node.querySelector('[data-opt-down]').addEventListener('click', function () { collectOptions(); moveOption(index, 1); });
+    node.querySelector('[data-opt-del]').addEventListener('click', function () {
+      collectOptions();
+      optionGroups.splice(index, 1);
+      renderOptions();
+      setOptStatus('Option removed — remember to Save.', 'info');
+    });
+
+    return node;
+  }
+
+  function collectOptions() {
+    var cards = el.optList.querySelectorAll('.ad-opt');
+    var next = [];
+    cards.forEach(function (card) {
+      function f(name) { return card.querySelector('[data-opt="' + name + '"]'); }
+      var type = f('type').value === 'text' ? 'text' : 'select';
+      var choices = f('choices').value.split('\n')
+        .map(function (c) { return c.trim(); })
+        .filter(function (c) { return c.length; });
+      next.push({
+        label: f('label').value.trim(),
+        type: type,
+        required: f('required').checked,
+        choices: choices
+      });
+    });
+    optionGroups = next;
+  }
+
+  function moveOption(index, delta) {
+    var target = index + delta;
+    if (target < 0 || target >= optionGroups.length) return;
+    var tmp = optionGroups[index];
+    optionGroups[index] = optionGroups[target];
+    optionGroups[target] = tmp;
+    renderOptions();
+  }
+
+  el.optAdd.addEventListener('click', function () {
+    collectOptions();
+    optionGroups.push({ label: '', type: 'select', required: true, choices: [] });
+    renderOptions();
+    var cards = el.optList.querySelectorAll('.ad-opt');
+    var last = cards[cards.length - 1];
+    if (last) last.querySelector('[data-opt="label"]').focus();
+  });
+
+  el.optSave.addEventListener('click', function () {
+    collectOptions();
+    el.optSave.disabled = true;
+    setOptStatus('Saving…', 'info');
+    api('/api/options', { method: 'PUT', body: JSON.stringify({ options: optionGroups }) })
+      .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+      .then(function (res) {
+        el.optSave.disabled = false;
+        if (res.status === 200) {
+          optionGroups = (res.body.options || []).map(cloneOption);
+          renderOptions();
+          setOptStatus('Saved! Options are live.', 'ok');
+        } else if (res.status === 401) {
+          setOptStatus('Session expired — please log in again.', 'err');
+          show(el.login); el.password.focus();
+        } else {
+          setOptStatus(res.body.error || 'Save failed.', 'err');
+        }
+      })
+      .catch(function () { el.optSave.disabled = false; setOptStatus('Network error while saving.', 'err'); });
+  });
 
   function resizeImage(file, maxDim, quality) {
     return new Promise(function (resolve, reject) {

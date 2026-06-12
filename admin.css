@@ -88,3 +88,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); c
 /* Logo preview: show the whole image, don't crop */
 .ad-site-preview--contain { background-size: contain; background-color: #fff; }
 @media (max-width: 900px) { .ad-site-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Product options editor */
+.ad-opt { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.ad-opt-head { display: grid; grid-template-columns: 1fr 200px auto; gap: 12px; align-items: end; }
+.ad-opt .ad-field { margin-bottom: 0; }
+.ad-opt-moves { display: flex; gap: 6px; padding-bottom: 2px; }
+.ad-opt-hint { font-weight: 400; color: var(--ink-light); }
+.ad-opt.is-text .ad-opt-choices { display: none; }
+.ad-opt-foot { display: flex; align-items: center; gap: 16px; }
+.ad-opt-foot .ad-check { margin-right: auto; }
+@media (max-width: 640px) {
+  .ad-opt-head { grid-template-columns: 1fr; }
+  .ad-opt-moves { justify-content: flex-end; }
+}
