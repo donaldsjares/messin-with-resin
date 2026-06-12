@@ -16,6 +16,7 @@
     list: document.getElementById('ad-list'),
     add: document.getElementById('ad-add'),
     save: document.getElementById('ad-save'),
+    importBtn: document.getElementById('ad-import'),
     status: document.getElementById('ad-status'),
     logout: document.getElementById('ad-logout'),
     template: document.getElementById('ad-prod-template')
@@ -205,26 +206,49 @@
     if (last) last.querySelector('[data-field="name"]').focus();
   });
 
-  el.save.addEventListener('click', function () {
-    collect();
+  function publish(successMsg) {
     el.save.disabled = true;
     setStatus('Saving…', 'info');
-    api('/api/products', { method: 'PUT', body: JSON.stringify({ products: products }) })
+    return api('/api/products', { method: 'PUT', body: JSON.stringify({ products: products }) })
       .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
       .then(function (res) {
         el.save.disabled = false;
         if (res.status === 200) {
           products = res.body.products.map(clone);
           render();
-          setStatus('Saved! Changes are live.', 'ok');
+          setStatus(successMsg || 'Saved! Changes are live.', 'ok');
         } else if (res.status === 401) {
           setStatus('Session expired — please log in again.', 'err');
           show(el.login); el.password.focus();
         } else {
           setStatus(res.body.error || 'Save failed.', 'err');
         }
+        return res;
       })
       .catch(function () { el.save.disabled = false; setStatus('Network error while saving.', 'err'); });
+  }
+
+  el.save.addEventListener('click', function () {
+    collect();
+    publish();
+  });
+
+  // One-click bulk import of the full catalog file, then publish it live.
+  el.importBtn.addEventListener('click', function () {
+    var ok = window.confirm('Replace the current product list with the full catalog (119 products) and publish it to the live site?\n\nPhotos on the current products will be removed — you can upload new ones afterward.');
+    if (!ok) return;
+    setStatus('Loading catalog…', 'info');
+    fetch('/data/products.json', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.json();
+      })
+      .then(function (data) {
+        products = (data.products || []).map(clone);
+        render();
+        return publish('Imported ' + products.length + ' products — they’re live!');
+      })
+      .catch(function () { setStatus('Could not load the catalog file.', 'err'); });
   });
 
   /* ── Image upload ──
