@@ -659,7 +659,7 @@
   /* ── Scroll reveal ── */
   function setupReveal() {
     var targets = document.querySelectorAll(
-      '.mr-prod-card, .mr-review-card, .mr-feat, .mr-step, .mr-section-header, ' +
+      '.mr-prod-card, .mr-review-card, .mr-feat, .mr-step, .mr-how-step, .mr-section-header, ' +
       '.mr-reviews-header, .mr-about-frame, .mr-comm-showcase, .mr-contact-btns'
     );
     targets.forEach(function (el) { el.classList.add('mr-reveal'); });
