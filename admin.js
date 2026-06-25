@@ -144,7 +144,7 @@
     function paintSwatch() {
       var img = field('image').value;
       if (img) {
-        swatch.style.background = "#fff url('" + img.replace(/'/g, '%27') + "') center/cover no-repeat";
+        swatch.style.background = "#fff url('" + img.replace(/'/g, '%27') + "') center/contain no-repeat";
         swatch.textContent = '';
         removeBtn.hidden = false;
         uploadLabel.textContent = 'Replace photo';

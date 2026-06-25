@@ -76,12 +76,12 @@
     applyFilter(activeFilter);
   }
 
-  /* A product's visual is either an uploaded photo (cover background) or its
-   * gradient + emoji. These helpers keep that consistent everywhere. */
+  /* A product's visual is either an uploaded photo (shown whole, never cropped)
+   * or its gradient + emoji. These helpers keep that consistent everywhere. */
   function mediaBg(p) {
     if (p && p.image) {
       return "background-image:url('" + String(p.image).replace(/'/g, '%27') +
-        "');background-size:cover;background-position:center";
+        "');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff";
     }
     return 'background:' + (p && p.bg ? p.bg : 'var(--cream-mid)');
   }
