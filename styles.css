@@ -25,9 +25,9 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-bar a { color: var(--rose-light); text-decoration: none; font-weight: 600; }
 
 /* ── NAV ── */
-.mr-nav { background: #fff; border-bottom: 1px solid var(--border); padding: 0 56px; display: flex; align-items: center; justify-content: space-between; height: 70px; position: sticky; top: 0; z-index: 100; }
+.mr-nav { background: #fff; border-bottom: 1px solid var(--border); padding: 0 56px; display: flex; align-items: center; justify-content: space-between; height: 88px; position: sticky; top: 0; z-index: 100; }
 .mr-logo { display: flex; align-items: center; gap: 10px; }
-.mr-logo-mark { width: 38px; height: 38px; background: linear-gradient(135deg, var(--rose), #ffd93d); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 8px rgba(255,107,107,0.3); }
+.mr-logo-mark { width: 48px; height: 48px; background: linear-gradient(135deg, var(--rose), #ffd93d); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 23px; box-shadow: 0 2px 8px rgba(255,107,107,0.3); }
 .mr-logo-name { display: flex; flex-direction: column; }
 .mr-logo-top { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--ink); letter-spacing: 0.2px; line-height: 1.1; }
 .mr-logo-sub { font-size: 9px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); }
@@ -335,7 +335,7 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-modal-share:hover { color: var(--rose); }
 
 /* ── PRODUCT FILTERS ── */
-.mr-filters { display: flex; flex-wrap: wrap; gap: 10px; position: sticky; top: 70px; z-index: 90; background: var(--cream); padding: 16px 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.mr-filters { display: flex; flex-wrap: wrap; gap: 10px; position: sticky; top: 88px; z-index: 90; background: var(--cream); padding: 16px 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
 .mr-filter { background: #fff; border: 1px solid var(--border); color: var(--ink-mid); padding: 8px 18px; border-radius: 100px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 .mr-filter:hover { border-color: var(--rose); color: var(--rose); }
 .mr-filter.is-active { background: var(--rose); border-color: var(--rose); color: #fff; }
@@ -386,7 +386,7 @@ body.mr-no-scroll { overflow: hidden; }
 @media (max-width: 768px) {
   .mr-prod-grid { grid-template-columns: repeat(2, 1fr); }
   .mr-hamburger { display: flex; }
-  .mr-nav-links { position: absolute; top: 70px; left: 0; right: 0; flex-direction: column; gap: 0; background: #fff; border-bottom: 1px solid var(--border); box-shadow: 0 12px 32px rgba(26,26,46,0.08); padding: 8px 0; transform: translateY(-12px); opacity: 0; pointer-events: none; transition: transform 0.2s, opacity 0.2s; }
+  .mr-nav-links { position: absolute; top: 88px; left: 0; right: 0; flex-direction: column; gap: 0; background: #fff; border-bottom: 1px solid var(--border); box-shadow: 0 12px 32px rgba(26,26,46,0.08); padding: 8px 0; transform: translateY(-12px); opacity: 0; pointer-events: none; transition: transform 0.2s, opacity 0.2s; }
   .mr-nav-links.is-open { transform: translateY(0); opacity: 1; pointer-events: auto; }
   .mr-nav-links a { padding: 14px 32px; font-size: 15px; }
   .mr-nav-links a::after { display: none; }
@@ -480,8 +480,8 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-footer-social-btn:hover { background: var(--rose); color: #fff; transform: translateY(-1px); }
 
 /* ── UPLOADED NAV LOGO ── */
-.mr-logo-img { height: 56px; width: auto; display: block; }
-@media (max-width: 560px) { .mr-logo-img { height: 46px; } }
+.mr-logo-img { height: 74px; width: auto; display: block; }
+@media (max-width: 560px) { .mr-logo-img { height: 60px; } }
 
 /* ── PRODUCT OPTIONS (quick-view modal) ── */
 .mr-modal-info { overflow-y: auto; max-height: 90vh; }
