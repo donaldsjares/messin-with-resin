@@ -180,10 +180,6 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-step-title { font-size: 14px; font-weight: 600; color: #fef6e4; margin-bottom: 4px; }
 .mr-step-sub { font-size: 12.5px; color: #9a9ab0; line-height: 1.6; }
 .mr-comm-btn { background: var(--rose); color: #fff; border: none; padding: 15px 32px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 36px; box-shadow: 0 6px 24px rgba(255,107,107,0.4); display: inline-block; }
-.mr-comm-fb { display: inline-flex; align-items: center; gap: 9px; background: rgba(255,255,255,0.08); color: #fef6e4; border: 1.5px solid rgba(255,255,255,0.35); padding: 13px 26px; border-radius: 100px; font-size: 14px; font-weight: 600; text-decoration: none; margin-top: 36px; margin-left: 14px; transition: background 0.15s, border-color 0.15s, color 0.15s; }
-.mr-comm-fb:hover { background: #1877f2; border-color: #1877f2; color: #fff; }
-.mr-comm-fb-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1877f2; color: #fff; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 14px; line-height: 1; transition: background 0.15s, color 0.15s; }
-.mr-comm-fb:hover .mr-comm-fb-ico { background: #fff; color: #1877f2; }
 .mr-comm-right { background: #ff6b6b; border-left: 1px solid rgba(255,255,255,0.05); padding: 88px 64px; display: flex; align-items: center; justify-content: center; }
 .mr-comm-showcase { text-align: center; }
 .mr-comm-circle { width: 220px; height: 220px; background: linear-gradient(135deg, #ffd93d 0%, #ffe98a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 100px; margin: 0 auto 28px; box-shadow: 0 24px 64px rgba(255,107,107,0.35); }
@@ -199,6 +195,10 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-contact-btns { display: flex; flex-direction: column; gap: 12px; }
 .mr-contact-btn-a { background: #fff; color: var(--rose); border: none; padding: 14px 30px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
 .mr-contact-btn-b { background: transparent; border: 1.5px solid rgba(255,255,255,0.45); color: #fff; padding: 13px 26px; border-radius: 100px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+.mr-contact-fb { display: inline-flex; align-items: center; justify-content: center; gap: 9px; background: #fff; color: #1877f2; border: none; padding: 14px 30px; border-radius: 100px; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s, color 0.15s; }
+.mr-contact-fb-ico { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1877f2; color: #fff; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: 14px; line-height: 1; transition: background 0.15s, color 0.15s; }
+.mr-contact-fb:hover { background: #1877f2; color: #fff; }
+.mr-contact-fb:hover .mr-contact-fb-ico { background: #fff; color: #1877f2; }
 
 /* ── FOOTER ── */
 .mr-footer { background: #1a1a2e; padding: 64px 56px 32px; }
