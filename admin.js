@@ -101,7 +101,7 @@
   function clone(p) {
     return {
       id: p.id, name: p.name, category: p.category || '', price: p.price,
-      emoji: p.emoji || '🎨', description: p.description || '', image: p.image || '',
+      emoji: p.emoji || '🎨', description: p.description || '', dimensions: p.dimensions || '', image: p.image || '',
       bg: p.bg || 'linear-gradient(135deg,#fce7f3,#ede9fe)',
       badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null,
       featured: !!p.featured
@@ -130,6 +130,7 @@
     field('price').value = (p.price != null ? p.price : '');
     field('emoji').value = p.emoji || '';
     field('description').value = p.description || '';
+    field('dimensions').value = p.dimensions || '';
     field('bg').value = p.bg || '';
     field('badgeType').value = p.badge ? p.badge.type : '';
     field('badgeLabel').value = p.badge ? p.badge.label : '';
@@ -200,6 +201,7 @@
         price: v('price'),
         emoji: v('emoji').trim(),
         description: v('description').trim(),
+        dimensions: v('dimensions').trim(),
         image: v('image').trim(),
         bg: v('bg').trim(),
         badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null,

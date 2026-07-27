@@ -326,6 +326,8 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-modal-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--ink); margin: 8px 0 10px; line-height: 1.15; }
 .mr-modal-price { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--rose); margin-bottom: 16px; }
 .mr-modal-desc { font-size: 14px; color: var(--ink-mid); line-height: 1.7; margin-bottom: 26px; }
+.mr-modal-dim { font-size: 13.5px; color: var(--ink-mid); margin: -12px 0 24px; }
+.mr-modal-dim span { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
 .mr-modal-controls { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
 .mr-qty-lg button { width: 36px; height: 36px; font-size: 18px; }
 .mr-qty-lg .mr-qty-val { min-width: 34px; font-size: 14px; }

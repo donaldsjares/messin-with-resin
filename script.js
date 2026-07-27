@@ -54,6 +54,7 @@
         price: Number(p.price) || 0,
         emoji: p.emoji || '🎨',
         description: p.description || '',
+        dimensions: p.dimensions || '',
         image: p.image || '',
         bg: p.bg || 'var(--cream-mid)',
         badge: p.badge && p.badge.type ? p.badge : null,
@@ -259,6 +260,7 @@
     modalName: document.getElementById('mr-modal-name'),
     modalPrice: document.getElementById('mr-modal-price'),
     modalDesc: document.getElementById('mr-modal-desc'),
+    modalDim: document.getElementById('mr-modal-dim'),
     modalQty: document.getElementById('mr-modal-qty'),
     modalDec: document.getElementById('mr-modal-dec'),
     modalInc: document.getElementById('mr-modal-inc'),
@@ -693,6 +695,15 @@
     els.modalName.textContent = p.name;
     els.modalPrice.textContent = 'From ' + formatPrice(p.price);
     els.modalDesc.textContent = p.description;
+    if (els.modalDim) {
+      if (p.dimensions) {
+        els.modalDim.innerHTML = '<span>Dimensions</span> ' + escapeHtml(p.dimensions);
+        els.modalDim.hidden = false;
+      } else {
+        els.modalDim.textContent = '';
+        els.modalDim.hidden = true;
+      }
+    }
     els.modalQty.textContent = modalQty;
     renderModalOptions();
 
