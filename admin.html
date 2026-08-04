@@ -104,6 +104,34 @@
         <span class="ad-status" id="ad-site-status"></span>
       </div>
 
+      <!-- Shipping settings -->
+      <h1 class="ad-h1" style="margin-top:44px;">Shipping <em>settings</em></h1>
+      <p class="ad-sub">Used to estimate USPS shipping at checkout. Set your ship-from ZIP and any fees, then click <strong>Save shipping settings</strong>.</p>
+      <div class="ad-ship-grid">
+        <div class="ad-field">
+          <label>Ship-from ZIP</label>
+          <input type="text" data-ship-field="shipFromZIP" inputmode="numeric" maxlength="5" placeholder="e.g. 78701">
+        </div>
+        <div class="ad-field">
+          <label>Handling fee (USD)</label>
+          <input type="number" data-ship-field="handlingFee" min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="ad-field">
+          <label>Free shipping over (USD)</label>
+          <input type="number" data-ship-field="freeShipThreshold" min="0" step="0.01" placeholder="blank = off">
+        </div>
+        <div class="ad-field">
+          <label>Flat-rate fallback (USD)</label>
+          <input type="number" data-ship-field="flatRate" min="0" step="0.01" placeholder="e.g. 6.00">
+        </div>
+      </div>
+      <p class="ad-note">The flat-rate fallback is used when live USPS rates are unavailable (USPS API not configured, or a lookup fails). Leave the fee/threshold blank to disable them.</p>
+      <div class="ad-toolbar">
+        <button class="ad-btn" id="ad-ship-save">Save shipping settings</button>
+        <span class="ad-spacer"></span>
+        <span class="ad-status" id="ad-ship-status"></span>
+      </div>
+
       <h1 class="ad-h1" style="margin-top:44px;">Manage <em>products</em></h1>
       <p class="ad-sub">Add, edit, reorder, or remove pieces. Click <strong>Save changes</strong> to publish to the live site.</p>
       <div class="ad-toolbar">
@@ -160,6 +188,10 @@
         <div class="ad-field">
           <label>Emoji / icon</label>
           <input type="text" data-field="emoji" maxlength="8">
+        </div>
+        <div class="ad-field">
+          <label>Weight (oz)</label>
+          <input type="number" data-field="weight" min="0" step="0.1" placeholder="e.g. 6.5">
         </div>
         <div class="ad-field ad-col-span">
           <label>Dimensions</label>

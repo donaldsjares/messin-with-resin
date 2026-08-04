@@ -52,6 +52,7 @@
         name: p.name,
         category: p.category || '',
         price: Number(p.price) || 0,
+        weight: Number(p.weight) || 0,
         emoji: p.emoji || '🎨',
         description: p.description || '',
         dimensions: p.dimensions || '',

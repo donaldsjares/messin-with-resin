@@ -23,6 +23,8 @@
     template: document.getElementById('ad-prod-template'),
     siteSave: document.getElementById('ad-site-save'),
     siteStatus: document.getElementById('ad-site-status'),
+    shipSave: document.getElementById('ad-ship-save'),
+    shipStatus: document.getElementById('ad-ship-status'),
     optList: document.getElementById('ad-opt-list'),
     optAdd: document.getElementById('ad-opt-add'),
     optSave: document.getElementById('ad-opt-save'),
@@ -38,6 +40,11 @@
   function setSiteStatus(msg, kind) {
     el.siteStatus.textContent = msg || '';
     el.siteStatus.className = 'ad-status' + (kind ? ' is-' + kind : '');
+  }
+
+  function setShipStatus(msg, kind) {
+    el.shipStatus.textContent = msg || '';
+    el.shipStatus.className = 'ad-status' + (kind ? ' is-' + kind : '');
   }
 
   function show(section) {
@@ -101,7 +108,7 @@
   function clone(p) {
     return {
       id: p.id, name: p.name, category: p.category || '', price: p.price,
-      emoji: p.emoji || '🎨', description: p.description || '', dimensions: p.dimensions || '', image: p.image || '',
+      emoji: p.emoji || '🎨', description: p.description || '', dimensions: p.dimensions || '', weight: (p.weight != null ? p.weight : ''), image: p.image || '',
       bg: p.bg || 'linear-gradient(135deg,#fce7f3,#ede9fe)',
       badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null,
       featured: !!p.featured
@@ -131,6 +138,7 @@
     field('emoji').value = p.emoji || '';
     field('description').value = p.description || '';
     field('dimensions').value = p.dimensions || '';
+    field('weight').value = (p.weight != null ? p.weight : '');
     field('bg').value = p.bg || '';
     field('badgeType').value = p.badge ? p.badge.type : '';
     field('badgeLabel').value = p.badge ? p.badge.label : '';
@@ -202,6 +210,7 @@
         emoji: v('emoji').trim(),
         description: v('description').trim(),
         dimensions: v('dimensions').trim(),
+        weight: v('weight').trim(),
         image: v('image').trim(),
         bg: v('bg').trim(),
         badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null,
@@ -371,6 +380,10 @@
     });
   }
 
+  function shipFields() {
+    return Array.prototype.slice.call(document.querySelectorAll('[data-ship-field]'));
+  }
+
   function loadSite() {
     api('/api/site').then(function (r) { return r.json(); }).then(function (data) {
       siteItems().forEach(function (item) {
@@ -378,25 +391,46 @@
         item.querySelector('[data-site-field]').value = (data && data[key]) || '';
         paintSiteItem(item);
       });
+      shipFields().forEach(function (input) {
+        input.value = (data && data[input.dataset.shipField]) || '';
+      });
     }).catch(function () { /* ignore */ });
   }
 
-  el.siteSave.addEventListener('click', function () {
+  /* Site images and shipping settings share one /api/site object, and a save
+   * replaces the whole thing — so every save sends both sets of fields to
+   * avoid one section wiping the other. */
+  function collectSitePayload() {
     var payload = {};
     siteItems().forEach(function (item) {
       payload[item.dataset.site] = item.querySelector('[data-site-field]').value.trim();
     });
-    el.siteSave.disabled = true;
-    setSiteStatus('Saving…', 'info');
-    api('/api/site', { method: 'PUT', body: JSON.stringify(payload) })
+    shipFields().forEach(function (input) {
+      payload[input.dataset.shipField] = input.value.trim();
+    });
+    return payload;
+  }
+
+  function saveSite(btn, setStat, okMsg) {
+    btn.disabled = true;
+    setStat('Saving…', 'info');
+    api('/api/site', { method: 'PUT', body: JSON.stringify(collectSitePayload()) })
       .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
       .then(function (res) {
-        el.siteSave.disabled = false;
-        if (res.status === 200) setSiteStatus('Saved! Section images are live.', 'ok');
-        else if (res.status === 401) { setSiteStatus('Session expired — please log in again.', 'err'); show(el.login); el.password.focus(); }
-        else setSiteStatus(res.body.error || 'Save failed.', 'err');
+        btn.disabled = false;
+        if (res.status === 200) setStat(okMsg, 'ok');
+        else if (res.status === 401) { setStat('Session expired — please log in again.', 'err'); show(el.login); el.password.focus(); }
+        else setStat(res.body.error || 'Save failed.', 'err');
       })
-      .catch(function () { el.siteSave.disabled = false; setSiteStatus('Network error while saving.', 'err'); });
+      .catch(function () { btn.disabled = false; setStat('Network error while saving.', 'err'); });
+  }
+
+  el.siteSave.addEventListener('click', function () {
+    saveSite(el.siteSave, setSiteStatus, 'Saved! Section images are live.');
+  });
+
+  el.shipSave.addEventListener('click', function () {
+    saveSite(el.shipSave, setShipStatus, 'Saved! Shipping settings updated.');
   });
 
   setupSite();
