@@ -18,12 +18,18 @@ admin.js          Admin logic
 api/products.js   GET (public) / PUT (owner) products
 api/auth.js       Owner login / logout / session
 api/shipping.js   POST cart + ZIP → USPS (or flat-rate) shipping estimate
+api/checkout.js   POST cart → Stripe Checkout Session (redirect URL)
+api/stripe-webhook.js  Stripe webhook → mark orders paid (raw-body sig verify)
+api/orders.js     GET (owner) order list
 api/upload.mjs    Owner image upload → Vercel Blob (ESM, uses @vercel/blob)
 lib/auth.js       Signed-cookie session helpers (crypto, no deps)
 lib/store.js      Product storage: Upstash Redis REST in prod, file locally
 lib/products.js   Product validation / normalization
 lib/site.js       Site settings (section images + shipping) storage
 lib/usps.js       USPS APIs client (OAuth2 token + Domestic Prices lookup)
+lib/shipping.js   Shared shipping-quote logic (estimate + checkout charge)
+lib/stripe.js     Stripe client (Checkout Session + webhook sig verify, no SDK)
+lib/orders.js     Order storage: Upstash Redis REST in prod, file locally
 data/products.json  Seed catalog (single source of truth for the seed)
 vercel.json       Clean URLs
 package.json      Single dependency: @vercel/blob (for image uploads)
@@ -90,8 +96,31 @@ change the rate), then:
    each option.
 
 To validate live rates before going to production, point `USPS_API_BASE` at the
-USPS TEM sandbox (`https://apis-tem.usps.com`) with your credentials. Payment
-and order capture are still to come — the estimate is display-only for now.
+USPS TEM sandbox (`https://apis-tem.usps.com`) with your credentials.
+
+## Checkout & payments
+
+Checkout uses **Stripe Checkout** (the hosted, PCI-compliant payment page) via
+Stripe's REST API — no SDK, matching the rest of the backend.
+
+1. The shopper estimates shipping in the cart, then clicks **Checkout**.
+2. `POST /api/checkout` **recomputes** merchandise prices and the shipping
+   charge server-side via `lib/shipping.js` (the client's chosen service only
+   selects among the server's own options — a tampered cart or price can't get
+   through), records a **pending order**, creates a Stripe Checkout Session,
+   and returns its URL. The browser redirects to Stripe, which collects the
+   shipping address and payment.
+3. On success Stripe redirects back to `/?checkout=success`; the storefront
+   clears the cart and shows a confirmation. `?checkout=cancel` keeps the cart.
+4. `POST /api/stripe-webhook` (signature-verified against the raw body) marks
+   the order **paid** and saves the shipping address on
+   `checkout.session.completed`. This is the source of truth for payment — the
+   success redirect alone never marks an order paid.
+
+Orders are stored in KV (`lib/orders.js`) and readable by the owner at
+`GET /api/orders`. Without `STRIPE_SECRET_KEY`, the Checkout button falls back
+to a "not set up yet" message, so the site stays usable pre-configuration. Use
+Stripe **test keys** (`sk_test_…`) until you're ready to go live.
 
 ### Deploying to Vercel
 
@@ -107,6 +136,10 @@ and order capture are still to come — the estimate is display-only for now.
    - *(optional)* `USPS_CLIENT_ID` / `USPS_CLIENT_SECRET` for live USPS rates
      (register an app at developer.usps.com). Without them, the cart uses the
      flat-rate fallback from the admin's Shipping settings.
+   - *(optional)* `STRIPE_SECRET_KEY` for real checkout. Then add a Stripe
+     webhook pointing at `https://<your-domain>/api/stripe-webhook` for
+     `checkout.session.completed` + `checkout.session.expired`, and set its
+     signing secret as `STRIPE_WEBHOOK_SECRET`.
 5. Deploy, then visit `/admin` to log in. Set your ship-from ZIP and shipping
    fees under **Shipping settings**.
 
@@ -135,8 +168,12 @@ These are intentionally stubbed pending real details:
 - **Imagery** — product photos can now be uploaded in the admin (stored in
   Vercel Blob). The gallery tiles, artist photo, and commission showcase are
   still emoji / placeholder frames; swap in real photography when ready.
-- **Checkout** — the cart works, persists, and can estimate USPS shipping, but
-  the checkout button is still a placeholder; no payment/order backend yet.
+- **Checkout** — the cart estimates USPS shipping and checks out through
+  Stripe, capturing paid orders in KV. Still to come: an **admin orders view**
+  (orders are stored and readable at `/api/orders`, but there's no UI yet),
+  optional order-notification email, and USPS **label printing** (needs a USPS
+  EPS business account). Sales tax isn't collected yet — enable Stripe Tax or
+  add a Texas rate if required.
 - **Commission form** — validates and shows a success state, but the payload
   is only logged to the console; needs a real endpoint or form service.
 - **Contact & social links** — Instagram, email, and phone need real
