@@ -29,6 +29,7 @@
   var cart = loadCart(); // { id: { name, price, emoji, qty } }
   var catalog = [];      // [{ id, name, price, emoji, category, description, bg, badge }]
   var recent = loadRecent(); // array of product ids, most-recent first
+  var shipQuote = null;  // { signature, zip, options:[{service,label,price}], selected }
 
   function loadRecent() {
     try {
@@ -250,6 +251,14 @@
     cartFoot: document.getElementById('mr-cart-foot'),
     cartClear: document.getElementById('mr-cart-clear'),
     checkout: document.getElementById('mr-cart-checkout'),
+    shipZip: document.getElementById('mr-ship-zip'),
+    shipEstimate: document.getElementById('mr-ship-estimate'),
+    shipStatus: document.getElementById('mr-ship-status'),
+    shipOptions: document.getElementById('mr-ship-options'),
+    shipLine: document.getElementById('mr-cart-ship-line'),
+    shipping: document.getElementById('mr-cart-shipping'),
+    grandLine: document.getElementById('mr-cart-grand-line'),
+    grand: document.getElementById('mr-cart-grand'),
     hamburger: document.getElementById('mr-hamburger'),
     navLinks: document.getElementById('mr-nav-links'),
     toasts: document.getElementById('mr-toasts'),
@@ -438,6 +447,115 @@
     }, 0);
   }
 
+  /* ── Shipping estimate ── */
+  /* A signature of the cart contents; a shipping quote is only valid while the
+   * contents (and thus weight/subtotal) are unchanged. */
+  function cartSignature() {
+    return Object.keys(cart).sort().map(function (k) {
+      return cart[k].id + ':' + cart[k].qty;
+    }).join('|');
+  }
+
+  function setShipStatus(msg, kind) {
+    if (!els.shipStatus) return;
+    els.shipStatus.textContent = msg || '';
+    els.shipStatus.className = 'mr-ship-status' + (kind === 'err' ? ' is-err' : '');
+    els.shipStatus.hidden = !msg;
+  }
+
+  function estimateShipping() {
+    if (!els.shipZip) return;
+    var zip = (els.shipZip.value || '').trim();
+    if (!/^\d{5}$/.test(zip)) { setShipStatus('Enter a valid 5-digit ZIP code.', 'err'); return; }
+    if (cartCount() === 0) return;
+
+    var items = Object.keys(cart).map(function (k) {
+      return { id: cart[k].id, qty: cart[k].qty };
+    });
+
+    els.shipEstimate.disabled = true;
+    setShipStatus('Getting rates…');
+    els.shipOptions.hidden = true;
+
+    fetch('/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items, destinationZIP: zip })
+    })
+      .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+      .then(function (res) {
+        els.shipEstimate.disabled = false;
+        if (res.status !== 200) {
+          setShipStatus((res.body && res.body.error) || 'Could not estimate shipping.', 'err');
+          return;
+        }
+        shipQuote = {
+          signature: cartSignature(),
+          zip: zip,
+          options: (res.body.options || []).slice(),
+          note: res.body.note || '',
+          selected: 0
+        };
+        renderShipOptions();
+      })
+      .catch(function () {
+        els.shipEstimate.disabled = false;
+        setShipStatus('Network error getting rates.', 'err');
+      });
+  }
+
+  function renderShipOptions() {
+    if (!shipQuote || !shipQuote.options.length) {
+      els.shipOptions.hidden = true;
+      els.shipOptions.innerHTML = '';
+      els.shipLine.hidden = true;
+      els.grandLine.hidden = true;
+      setShipStatus((shipQuote && shipQuote.note) || 'No shipping options available.');
+      return;
+    }
+    setShipStatus(shipQuote.note || '');
+    els.shipOptions.innerHTML = '';
+    shipQuote.options.forEach(function (o, i) {
+      var label = document.createElement('label');
+      label.className = 'mr-ship-opt';
+      label.innerHTML =
+        '<input type="radio" name="mr-ship" value="' + i + '"' + (i === shipQuote.selected ? ' checked' : '') + '>' +
+        '<span class="mr-ship-opt-name">' + escapeHtml(o.label) + '</span>' +
+        '<span class="mr-ship-opt-price">' + (o.price > 0 ? formatPrice(o.price) : 'Free') + '</span>';
+      label.querySelector('input').addEventListener('change', function () {
+        shipQuote.selected = i;
+        updateShipTotals();
+      });
+      els.shipOptions.appendChild(label);
+    });
+    els.shipOptions.hidden = false;
+    updateShipTotals();
+  }
+
+  function updateShipTotals() {
+    if (!shipQuote || !shipQuote.options.length) return;
+    var ship = shipQuote.options[shipQuote.selected].price;
+    els.shipping.textContent = ship > 0 ? formatPrice(ship) : 'Free';
+    els.grand.textContent = formatPrice(cartTotal() + ship);
+    els.shipLine.hidden = false;
+    els.grandLine.hidden = false;
+  }
+
+  /* Called after every cart change: a stale quote (different contents) is
+   * cleared so totals never show shipping for a cart that no longer matches. */
+  function syncShipping() {
+    if (!els.shipZip || !shipQuote) return;
+    if (shipQuote.signature !== cartSignature()) {
+      shipQuote = null;
+      els.shipOptions.hidden = true;
+      els.shipOptions.innerHTML = '';
+      els.shipLine.hidden = true;
+      els.grandLine.hidden = true;
+      if (cartCount() > 0) setShipStatus('Cart changed — re-estimate shipping.');
+      else setShipStatus('');
+    }
+  }
+
   /* ── Rendering ── */
   function renderCart() {
     var count = cartCount();
@@ -465,6 +583,7 @@
     var totalEl = document.querySelector('[data-cart-total]');
     if (totalEl) totalEl.textContent = formatPrice(total);
     renderRecs(isEmpty);
+    syncShipping();
   }
 
   /* ── Cart recommendations ── */
@@ -1134,6 +1253,19 @@
         }
       });
     });
+
+    // Shipping estimate
+    if (els.shipEstimate) {
+      els.shipEstimate.addEventListener('click', estimateShipping);
+      els.shipZip.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); estimateShipping(); }
+      });
+      // Only digits in the ZIP box.
+      els.shipZip.addEventListener('input', function () {
+        var cleaned = els.shipZip.value.replace(/\D/g, '').slice(0, 5);
+        if (cleaned !== els.shipZip.value) els.shipZip.value = cleaned;
+      });
+    }
 
     // Checkout (placeholder until a real checkout flow exists)
     els.checkout.addEventListener('click', function () {

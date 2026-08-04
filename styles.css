@@ -267,6 +267,30 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-cart-total { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--rose); }
 .mr-cart-note { font-size: 11px; color: var(--ink-light); line-height: 1.5; margin-bottom: 16px; }
 .mr-cart-checkout { margin-top: 0; width: 100%; }
+
+/* ── SHIPPING ESTIMATOR ── */
+.mr-ship { margin: 14px 0 6px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.mr-ship-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 10px; }
+.mr-ship-row { display: flex; gap: 8px; }
+.mr-ship-zip { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink); }
+.mr-ship-zip:focus { outline: none; border-color: var(--rose); }
+.mr-ship-btn { flex: 0 0 auto; padding: 10px 16px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+.mr-ship-btn:hover { background: var(--rose); }
+.mr-ship-btn:disabled { opacity: 0.55; cursor: default; }
+.mr-ship-status { font-size: 12px; line-height: 1.5; margin-top: 8px; color: var(--ink-light); }
+.mr-ship-status.is-err { color: var(--rose); }
+.mr-ship-status[hidden] { display: none; }
+.mr-ship-options { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.mr-ship-options[hidden] { display: none; }
+.mr-ship-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; }
+.mr-ship-opt:hover { border-color: var(--rose); }
+.mr-ship-opt input { accent-color: var(--rose); margin: 0; }
+.mr-ship-opt-name { flex: 1; font-weight: 500; color: var(--ink); }
+.mr-ship-opt-price { font-weight: 700; color: var(--ink); }
+.mr-cart-ship-line[hidden], .mr-cart-grand-line[hidden] { display: none; }
+.mr-cart-ship-line span, .mr-cart-grand-line span:first-child { font-size: 14px; }
+.mr-cart-grand-line { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); }
+.mr-cart-grand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--rose); }
 .mr-cart-clear { display: block; width: 100%; margin-top: 10px; background: none; border: none; color: var(--ink-light); font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: underline; }
 .mr-cart-clear:hover { color: var(--rose); }
 
