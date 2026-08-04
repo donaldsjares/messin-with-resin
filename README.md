@@ -17,10 +17,13 @@ admin.js          Admin logic
 
 api/products.js   GET (public) / PUT (owner) products
 api/auth.js       Owner login / logout / session
+api/shipping.js   POST cart + ZIP → USPS (or flat-rate) shipping estimate
 api/upload.mjs    Owner image upload → Vercel Blob (ESM, uses @vercel/blob)
 lib/auth.js       Signed-cookie session helpers (crypto, no deps)
 lib/store.js      Product storage: Upstash Redis REST in prod, file locally
 lib/products.js   Product validation / normalization
+lib/site.js       Site settings (section images + shipping) storage
+lib/usps.js       USPS APIs client (OAuth2 token + Domestic Prices lookup)
 data/products.json  Seed catalog (single source of truth for the seed)
 vercel.json       Clean URLs
 package.json      Single dependency: @vercel/blob (for image uploads)
@@ -65,6 +68,30 @@ the live storefront for all visitors.
   compresses it in-browser, then uploads to **Vercel Blob** via `/api/upload`;
   the returned URL is stored on the product. The storefront shows the photo
   when present and falls back to the emoji + gradient otherwise.
+- **Shipping settings** — the admin has a *Shipping settings* panel (ship-from
+  ZIP, handling fee, free-shipping threshold, flat-rate fallback) plus a
+  per-product **Weight (oz)**. These feed the cart's shipping estimator.
+
+## Shipping estimates
+
+The cart drawer includes a **shipping estimator**: a shopper enters a
+destination ZIP and gets rate options, which update the order total. It calls
+`POST /api/shipping` with the cart's item ids + quantities; the server looks up
+each product's price and weight from the catalog (so a tampered cart can't
+change the rate), then:
+
+1. Returns **free shipping** if the subtotal clears the admin's threshold.
+2. Otherwise asks **USPS** for live rates (Ground Advantage + Priority Mail)
+   via `lib/usps.js` — OAuth2 client-credentials token, then the Domestic
+   Prices 3.0 `base-rates` endpoint — when `USPS_CLIENT_ID`/`USPS_CLIENT_SECRET`
+   and a ship-from ZIP are set.
+3. Falls back to the admin's **flat rate** whenever USPS is unconfigured or a
+   lookup fails, so checkout never hard-fails. The handling fee is added to
+   each option.
+
+To validate live rates before going to production, point `USPS_API_BASE` at the
+USPS TEM sandbox (`https://apis-tem.usps.com`) with your credentials. Payment
+and order capture are still to come — the estimate is display-only for now.
 
 ### Deploying to Vercel
 
@@ -77,7 +104,11 @@ the live storefront for all visitors.
    - `ADMIN_PASSWORD` — your login password.
    - `SESSION_SECRET` — a long random string
      (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
-5. Deploy, then visit `/admin` to log in.
+   - *(optional)* `USPS_CLIENT_ID` / `USPS_CLIENT_SECRET` for live USPS rates
+     (register an app at developer.usps.com). Without them, the cart uses the
+     flat-rate fallback from the admin's Shipping settings.
+5. Deploy, then visit `/admin` to log in. Set your ship-from ZIP and shipping
+   fees under **Shipping settings**.
 
 ## Running locally
 
@@ -104,8 +135,8 @@ These are intentionally stubbed pending real details:
 - **Imagery** — product photos can now be uploaded in the admin (stored in
   Vercel Blob). The gallery tiles, artist photo, and commission showcase are
   still emoji / placeholder frames; swap in real photography when ready.
-- **Checkout** — the cart works and persists, but the checkout button is a
-  placeholder; no payment/order backend yet.
+- **Checkout** — the cart works, persists, and can estimate USPS shipping, but
+  the checkout button is still a placeholder; no payment/order backend yet.
 - **Commission form** — validates and shows a success state, but the payload
   is only logged to the console; needs a real endpoint or form service.
 - **Contact & social links** — Instagram, email, and phone need real
