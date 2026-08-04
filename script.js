@@ -556,6 +556,67 @@
     }
   }
 
+  /* ── Checkout ── */
+  function startCheckout() {
+    if (cartCount() === 0) return;
+    if (!shipQuote || !shipQuote.options.length) {
+      setShipStatus('Estimate shipping first to check out.', 'err');
+      if (els.shipZip) els.shipZip.focus();
+      return;
+    }
+    var items = Object.keys(cart).map(function (k) {
+      return { id: cart[k].id, qty: cart[k].qty };
+    });
+    var chosen = shipQuote.options[shipQuote.selected] || shipQuote.options[0];
+
+    els.checkout.disabled = true;
+    var prevLabel = els.checkout.textContent;
+    els.checkout.textContent = 'Starting checkout…';
+
+    function reset() { els.checkout.disabled = false; els.checkout.textContent = prevLabel; }
+
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items, destinationZIP: shipQuote.zip, service: chosen.service })
+    })
+      .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.body && res.body.url) {
+          window.location.href = res.body.url; // redirect to Stripe Checkout
+          return;
+        }
+        reset();
+        if (res.status === 503) {
+          toast('💌', "Checkout isn't set up yet — but your cart is saved!");
+        } else {
+          toast('⚠️', (res.body && res.body.error) || 'Could not start checkout.');
+        }
+      })
+      .catch(function () { reset(); toast('⚠️', 'Network error starting checkout.'); });
+  }
+
+  /* Handle the return from Stripe (success/cancel query params). */
+  function handleCheckoutReturn() {
+    var params;
+    try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+    var status = params.get('checkout');
+    if (!status) return;
+
+    if (window.history && history.replaceState) {
+      history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
+
+    if (status === 'success') {
+      cart = {};
+      saveCart();
+      shipQuote = null;
+      toast('✅', 'Thank you! Your order is confirmed — a receipt is on its way.');
+    } else if (status === 'cancel') {
+      toast('🛒', 'Checkout canceled — your cart is saved.');
+    }
+  }
+
   /* ── Rendering ── */
   function renderCart() {
     var count = cartCount();
@@ -1270,12 +1331,10 @@
       });
     }
 
-    // Checkout (placeholder until a real checkout flow exists)
-    els.checkout.addEventListener('click', function () {
-      if (cartCount() === 0) return;
-      toast('💌', "Checkout isn't wired up yet — but your cart is saved!");
-    });
+    // Checkout → Stripe (falls back to a friendly message if unconfigured).
+    els.checkout.addEventListener('click', startCheckout);
 
+    handleCheckoutReturn();
     renderCart();
     renderRecentlyViewed();
     applySiteImages();
