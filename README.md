@@ -77,6 +77,8 @@ the live storefront for all visitors.
 - **Shipping settings** — the admin has a *Shipping settings* panel (ship-from
   ZIP, handling fee, free-shipping threshold, flat-rate fallback) plus a
   per-product **Weight (oz)**. These feed the cart's shipping estimator.
+- **Orders** — a *Recent orders* section lists checkout orders (status, items,
+  shipping address, totals), backed by the owner-only `/api/orders`.
 
 ## Shipping estimates
 
@@ -117,10 +119,12 @@ Stripe's REST API — no SDK, matching the rest of the backend.
    `checkout.session.completed`. This is the source of truth for payment — the
    success redirect alone never marks an order paid.
 
-Orders are stored in KV (`lib/orders.js`) and readable by the owner at
-`GET /api/orders`. Without `STRIPE_SECRET_KEY`, the Checkout button falls back
-to a "not set up yet" message, so the site stays usable pre-configuration. Use
-Stripe **test keys** (`sk_test_…`) until you're ready to go live.
+Orders are stored in KV (`lib/orders.js`), readable by the owner at
+`GET /api/orders`, and shown in the admin's **Recent orders** section (status,
+line items, shipping address, and totals). Without `STRIPE_SECRET_KEY`, the
+Checkout button falls back to a "not set up yet" message, so the site stays
+usable pre-configuration. Use Stripe **test keys** (`sk_test_…`) until you're
+ready to go live.
 
 ### Deploying to Vercel
 
@@ -169,11 +173,10 @@ These are intentionally stubbed pending real details:
   Vercel Blob). The gallery tiles, artist photo, and commission showcase are
   still emoji / placeholder frames; swap in real photography when ready.
 - **Checkout** — the cart estimates USPS shipping and checks out through
-  Stripe, capturing paid orders in KV. Still to come: an **admin orders view**
-  (orders are stored and readable at `/api/orders`, but there's no UI yet),
-  optional order-notification email, and USPS **label printing** (needs a USPS
-  EPS business account). Sales tax isn't collected yet — enable Stripe Tax or
-  add a Texas rate if required.
+  Stripe, capturing paid orders in KV and listing them in the admin's Recent
+  orders section. Still to come: optional order-notification email and USPS
+  **label printing** (needs a USPS EPS business account). Sales tax isn't
+  collected yet — enable Stripe Tax or add a Texas rate if required.
 - **Commission form** — validates and shows a success state, but the payload
   is only logged to the console; needs a real endpoint or form service.
 - **Contact & social links** — Instagram, email, and phone need real
