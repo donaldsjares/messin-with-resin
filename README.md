@@ -78,7 +78,9 @@ the live storefront for all visitors.
   ZIP, handling fee, free-shipping threshold, flat-rate fallback) plus a
   per-product **Weight (oz)**. These feed the cart's shipping estimator.
 - **Orders** — a *Recent orders* section lists checkout orders (status, items,
-  shipping address, totals), backed by the owner-only `/api/orders`.
+  shipping address, totals), backed by the owner-only `/api/orders`. Paid
+  orders can be marked **shipped** with a tracking number (POST `/api/orders`),
+  which records a USPS tracking link for fulfillment.
 
 ## Shipping estimates
 
@@ -174,9 +176,11 @@ These are intentionally stubbed pending real details:
   still emoji / placeholder frames; swap in real photography when ready.
 - **Checkout** — the cart estimates USPS shipping and checks out through
   Stripe, capturing paid orders in KV and listing them in the admin's Recent
-  orders section. Still to come: optional order-notification email and USPS
-  **label printing** (needs a USPS EPS business account). Sales tax isn't
-  collected yet — enable Stripe Tax or add a Texas rate if required.
+  orders section, where they can be marked shipped with a tracking number.
+  Still to come: optional order-notification email and automated USPS **label
+  purchasing** (needs a USPS EPS business account; today you buy labels
+  yourself and paste the tracking number). Sales tax isn't collected yet —
+  enable Stripe Tax or add a Texas rate if required.
 - **Commission form** — validates and shows a success state, but the payload
   is only logged to the console; needs a real endpoint or form service.
 - **Contact & social links** — Instagram, email, and phone need real
