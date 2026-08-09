@@ -23,6 +23,9 @@
     template: document.getElementById('ad-prod-template'),
     siteSave: document.getElementById('ad-site-save'),
     siteStatus: document.getElementById('ad-site-status'),
+    orders: document.getElementById('ad-orders'),
+    ordersRefresh: document.getElementById('ad-orders-refresh'),
+    ordersStatus: document.getElementById('ad-orders-status'),
     shipSave: document.getElementById('ad-ship-save'),
     shipStatus: document.getElementById('ad-ship-status'),
     optList: document.getElementById('ad-opt-list'),
@@ -63,6 +66,125 @@
     return fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } }, options || {}));
   }
 
+  /* ── Orders ── */
+  function setOrdersStatus(msg, kind) {
+    el.ordersStatus.textContent = msg || '';
+    el.ordersStatus.className = 'ad-status' + (kind ? ' is-' + kind : '');
+  }
+
+  function money(n) {
+    return '$' + (Number(n) || 0).toFixed(2);
+  }
+
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+  }
+
+  // Small DOM helper: create an element with an optional class and text.
+  function elm(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  var STATUS_LABELS = { paid: 'Paid', pending: 'Awaiting payment', failed: 'Failed', expired: 'Expired' };
+
+  function buildOrderCard(o) {
+    var card = elm('div', 'ad-order');
+    card.setAttribute('data-status', o.status || 'pending');
+
+    var head = elm('div', 'ad-order-head');
+    var idWrap = elm('div', 'ad-order-id');
+    idWrap.appendChild(elm('span', null, '#' + String(o.id || '').replace(/^ord_/, '').slice(0, 10)));
+    var badge = elm('span', 'ad-order-badge ad-badge-' + (o.status || 'pending'), STATUS_LABELS[o.status] || o.status || '—');
+    idWrap.appendChild(badge);
+    head.appendChild(idWrap);
+    head.appendChild(elm('div', 'ad-order-date', fmtDate(o.paidAt || o.createdAt)));
+    card.appendChild(head);
+
+    var body = elm('div', 'ad-order-body');
+
+    // Items column
+    var itemsCol = elm('div', 'ad-order-col');
+    itemsCol.appendChild(elm('div', 'ad-order-h', 'Items'));
+    var ul = elm('ul', 'ad-order-items');
+    (o.items || []).forEach(function (it) {
+      ul.appendChild(elm('li', null, (it.qty || 1) + ' × ' + (it.name || it.id) + ' — ' + money((it.price || 0) * (it.qty || 1))));
+    });
+    if (!(o.items || []).length) ul.appendChild(elm('li', 'ad-order-muted', 'No line items recorded'));
+    itemsCol.appendChild(ul);
+    body.appendChild(itemsCol);
+
+    // Ship-to column
+    var shipCol = elm('div', 'ad-order-col');
+    shipCol.appendChild(elm('div', 'ad-order-h', 'Ship to'));
+    var cust = o.customer || {};
+    var addr = cust.address || {};
+    var lines = [];
+    if (cust.name) lines.push(cust.name);
+    if (cust.email) lines.push(cust.email);
+    if (cust.phone) lines.push(cust.phone);
+    if (addr.line1) lines.push(addr.line1);
+    if (addr.line2) lines.push(addr.line2);
+    var cityLine = [addr.city, addr.state].filter(Boolean).join(', ');
+    if (addr.postal_code) cityLine = (cityLine ? cityLine + ' ' : '') + addr.postal_code;
+    if (cityLine) lines.push(cityLine);
+    if (!lines.length) lines.push(o.destinationZIP ? 'ZIP ' + o.destinationZIP + ' — address pending' : 'No address yet');
+    var custBox = elm('div', 'ad-order-cust');
+    lines.forEach(function (ln, i) {
+      if (i) custBox.appendChild(document.createElement('br'));
+      custBox.appendChild(document.createTextNode(ln));
+    });
+    shipCol.appendChild(custBox);
+    body.appendChild(shipCol);
+
+    // Totals column
+    var totalsCol = elm('div', 'ad-order-col ad-order-totals');
+    function totalRow(label, value, cls) {
+      var row = elm('div', cls || null);
+      row.appendChild(elm('span', 'ad-order-tl', label));
+      row.appendChild(elm('span', 'ad-order-tv', value));
+      return row;
+    }
+    totalsCol.appendChild(totalRow('Subtotal', money(o.subtotal)));
+    var shipLabel = 'Shipping' + (o.shipping && o.shipping.label ? ' (' + o.shipping.label + ')' : '');
+    totalsCol.appendChild(totalRow(shipLabel, money(o.shipping && o.shipping.price)));
+    totalsCol.appendChild(totalRow('Total', money(o.total), 'ad-order-total'));
+    body.appendChild(totalsCol);
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderOrders(list) {
+    el.orders.innerHTML = '';
+    if (!list.length) {
+      el.orders.appendChild(elm('div', 'ad-empty', 'No orders yet.'));
+      return;
+    }
+    list.forEach(function (o) { el.orders.appendChild(buildOrderCard(o)); });
+  }
+
+  function loadOrders() {
+    setOrdersStatus('Loading…', 'info');
+    api('/api/orders').then(function (r) {
+      return r.json().then(function (b) { return { status: r.status, body: b }; });
+    }).then(function (res) {
+      if (res.status === 401) { setOrdersStatus('Session expired — please log in again.', 'err'); show(el.login); el.password.focus(); return; }
+      if (res.status !== 200) { setOrdersStatus((res.body && res.body.error) || 'Could not load orders.', 'err'); return; }
+      renderOrders(res.body.orders || []);
+      var count = (res.body.orders || []).length;
+      setOrdersStatus(count ? count + (count === 1 ? ' order' : ' orders') : '');
+    }).catch(function () { setOrdersStatus('Could not load orders.', 'err'); });
+  }
+
+  el.ordersRefresh.addEventListener('click', loadOrders);
+
   /* ── Boot ── */
   function boot() {
     api('/api/auth').then(function (r) { return r.json(); }).then(function (s) {
@@ -95,6 +217,7 @@
   /* ── Editor ── */
   function loadEditor() {
     show(el.editor);
+    loadOrders();
     loadSite();
     loadOptions();
     setStatus('Loading products…', 'info');

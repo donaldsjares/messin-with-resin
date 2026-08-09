@@ -65,8 +65,18 @@
     <!-- Editor -->
     <section id="ad-editor" hidden>
 
+      <!-- Orders -->
+      <h1 class="ad-h1">Recent <em>orders</em></h1>
+      <p class="ad-sub">Orders placed through checkout, newest first. Paid orders are ready to fulfill.</p>
+      <div class="ad-toolbar">
+        <button class="ad-btn-soft" id="ad-orders-refresh">Refresh</button>
+        <span class="ad-spacer"></span>
+        <span class="ad-status" id="ad-orders-status"></span>
+      </div>
+      <div class="ad-orders" id="ad-orders"></div>
+
       <!-- Site images -->
-      <h1 class="ad-h1">Site <em>images</em></h1>
+      <h1 class="ad-h1" style="margin-top:44px;">Site <em>images</em></h1>
       <p class="ad-sub">Photos that appear in the homepage sections. Upload, then click <strong>Save site images</strong>.</p>
       <div class="ad-site-grid">
         <div class="ad-site-item" data-site="heroImage">

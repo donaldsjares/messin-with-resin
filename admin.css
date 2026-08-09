@@ -89,6 +89,31 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); c
 .ad-site-preview--contain { background-size: contain; background-color: #fff; }
 @media (max-width: 900px) { .ad-site-grid { grid-template-columns: repeat(2, 1fr); } }
 
+/* Orders */
+.ad-orders { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.ad-order { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+.ad-order[data-status="pending"] { opacity: 0.85; }
+.ad-order-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.ad-order-id { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); font-size: 14px; }
+.ad-order-date { font-size: 12.5px; color: var(--ink-mid); }
+.ad-order-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ad-badge-paid { background: #dcfce7; color: #166534; }
+.ad-badge-pending { background: #fef3c7; color: #92400e; }
+.ad-badge-failed { background: #fee2e2; color: #991b1b; }
+.ad-badge-expired { background: #e5e7eb; color: #4b5563; }
+.ad-order-body { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 20px; }
+.ad-order-h { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-light); margin-bottom: 8px; }
+.ad-order-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink); }
+.ad-order-muted { color: var(--ink-light); font-style: italic; }
+.ad-order-cust { font-size: 13px; line-height: 1.7; color: var(--ink); }
+.ad-order-totals { font-size: 13px; }
+.ad-order-totals > div { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.ad-order-tl { color: var(--ink-mid); }
+.ad-order-tv { color: var(--ink); font-weight: 600; white-space: nowrap; }
+.ad-order-total { margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--border); font-weight: 700; }
+.ad-order-total .ad-order-tl, .ad-order-total .ad-order-tv { color: var(--ink); font-weight: 700; }
+@media (max-width: 720px) { .ad-order-body { grid-template-columns: 1fr; gap: 14px; } }
+
 /* Shipping settings panel */
 .ad-ship-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 12px; }
 .ad-ship-grid .ad-field { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; }
