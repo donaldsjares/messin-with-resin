@@ -167,6 +167,9 @@
           '<div class="mr-prod-cat">' + escapeHtml(p.category) + '</div>' +
           '<div class="mr-prod-name">' + escapeHtml(p.name) + '</div>' +
           '<div class="mr-prod-desc">' + escapeHtml(p.description) + '</div>' +
+          (p.dimensions
+            ? '<div class="mr-prod-dim"><span>Dimensions</span> ' + escapeHtml(p.dimensions) + '</div>'
+            : '') +
           '<div class="mr-prod-row">' +
             '<div class="mr-prod-price">From ' + formatPrice(p.price) + '</div>' +
             '<button class="mr-prod-add" data-id="' + escapeAttr(p.id) + '">Customize</button>' +
