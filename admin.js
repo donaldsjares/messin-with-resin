@@ -103,6 +103,7 @@
     idWrap.appendChild(elm('span', null, '#' + String(o.id || '').replace(/^ord_/, '').slice(0, 10)));
     var badge = elm('span', 'ad-order-badge ad-badge-' + (o.status || 'pending'), STATUS_LABELS[o.status] || o.status || '—');
     idWrap.appendChild(badge);
+    if (o.fulfillment === 'shipped') idWrap.appendChild(elm('span', 'ad-order-badge ad-badge-shipped', 'Shipped'));
     head.appendChild(idWrap);
     head.appendChild(elm('div', 'ad-order-date', fmtDate(o.paidAt || o.createdAt)));
     card.appendChild(head);
@@ -158,7 +159,53 @@
     body.appendChild(totalsCol);
 
     card.appendChild(body);
+
+    // Fulfillment controls (paid orders only).
+    if (o.status === 'paid') card.appendChild(buildFulfillment(o));
     return card;
+  }
+
+  function buildFulfillment(o) {
+    var foot = elm('div', 'ad-order-foot');
+    if (o.fulfillment === 'shipped') {
+      var info = elm('div', 'ad-order-shipped');
+      info.appendChild(elm('span', 'ad-order-shipmark', '✓ Shipped'));
+      if (o.shippedAt) info.appendChild(elm('span', 'ad-order-shipdate', fmtDate(o.shippedAt)));
+      if (o.trackingNumber) {
+        var a = elm('a', 'ad-order-track', o.trackingNumber);
+        a.href = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + encodeURIComponent(o.trackingNumber);
+        a.target = '_blank';
+        a.rel = 'noopener';
+        info.appendChild(a);
+      }
+      foot.appendChild(info);
+      var undo = elm('button', 'ad-btn-ghost', 'Mark unshipped');
+      undo.type = 'button';
+      undo.addEventListener('click', function () { setFulfillment(o.id, 'unshipped', ''); });
+      foot.appendChild(undo);
+    } else {
+      var input = elm('input', 'ad-order-trackinput');
+      input.type = 'text';
+      input.placeholder = 'Tracking # (optional)';
+      var btn = elm('button', 'ad-btn-soft', 'Mark shipped');
+      btn.type = 'button';
+      btn.addEventListener('click', function () { setFulfillment(o.id, 'shipped', input.value); });
+      foot.appendChild(input);
+      foot.appendChild(btn);
+    }
+    return foot;
+  }
+
+  function setFulfillment(id, fulfillment, tracking) {
+    setOrdersStatus(fulfillment === 'shipped' ? 'Marking shipped…' : 'Updating…', 'info');
+    api('/api/orders', { method: 'POST', body: JSON.stringify({ id: id, fulfillment: fulfillment, tracking: tracking }) })
+      .then(function (r) { return r.json().then(function (b) { return { status: r.status, body: b }; }); })
+      .then(function (res) {
+        if (res.status === 200) { loadOrders(); }
+        else if (res.status === 401) { setOrdersStatus('Session expired — please log in again.', 'err'); show(el.login); el.password.focus(); }
+        else setOrdersStatus((res.body && res.body.error) || 'Update failed.', 'err');
+      })
+      .catch(function () { setOrdersStatus('Network error updating order.', 'err'); });
   }
 
   function renderOrders(list) {
