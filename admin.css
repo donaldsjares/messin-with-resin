@@ -130,6 +130,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); c
 @media (max-width: 900px) { .ad-ship-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) { .ad-ship-grid { grid-template-columns: 1fr; } }
 
+/* Product list filter */
+.ad-prod-filter { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ad-prod-search { flex: 1; max-width: 420px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; }
+.ad-prod-search:focus { outline: none; border-color: var(--rose); }
+.ad-prod-filter-count { font-size: 12.5px; color: var(--ink-mid); white-space: nowrap; }
+.ad-prod-hidden { display: none; }
+
 /* Product options editor */
 .ad-opt { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .ad-opt-head { display: grid; grid-template-columns: 1fr 200px auto; gap: 12px; align-items: end; }
