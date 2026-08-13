@@ -1402,7 +1402,18 @@
       }
     } catch (e) { /* very old browser — default to All */ }
     setCatalog(SEED_PRODUCTS);
+    fetchCatalog();
+  }
+
+  /* Fetch the live catalog and re-render everything that derives from it —
+   * product grid, featured teaser, recently-viewed, cart, and (if open) the
+   * search dropdown. Called on load and whenever the tab is refocused, so
+   * products added/edited/removed in the admin show up without a manual
+   * reload and the search always reflects the current catalog. */
+  var lastCatalogFetch = 0;
+  function fetchCatalog() {
     if (!window.fetch) return;
+    lastCatalogFetch = Date.now();
     fetch('/api/products', { headers: { 'Accept': 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
@@ -1410,9 +1421,10 @@
           setCatalog(data.products);
           renderRecentlyViewed();
           renderCart();
+          if (els.searchResults && !els.searchResults.hidden) renderSearchDropdown();
         }
       })
-      .catch(function () { /* offline or no backend — seed already rendered */ });
+      .catch(function () { /* offline or no backend — keep what we have */ });
   }
 
   /* ── Wire up events ── */
@@ -1518,6 +1530,16 @@
 
     // Product search (nav)
     setupSearch();
+
+    // Refresh the catalog (and thus search) when the tab is refocused, so
+    // admin edits appear without a manual reload. Throttled to avoid churn.
+    function refreshOnReturn() {
+      if (document.visibilityState === 'visible' && Date.now() - lastCatalogFetch > 8000) {
+        fetchCatalog();
+      }
+    }
+    document.addEventListener('visibilitychange', refreshOnReturn);
+    window.addEventListener('focus', refreshOnReturn);
 
     // Checkout → Stripe (falls back to a friendly message if unconfigured).
     els.checkout.addEventListener('click', startCheckout);
