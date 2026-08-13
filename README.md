@@ -46,6 +46,9 @@ Fonts.
   progress bar, clear-cart, and add/clear actions with one-tap **Undo**.
   Persists in `localStorage`.
 - **Quick-view modal** — click a product card for a larger view + quantity.
+- **Search** — a nav search box on every page with a live dropdown of matching
+  products (name / category / description); results open the quick-view, and
+  Enter filters the gallery grid (via `/gallery?q=`).
 - **Product filters** — filter the grid by category.
 - **Gallery lightbox** — click a tile for a full view with prev/next and
   arrow-key navigation.

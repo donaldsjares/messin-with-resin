@@ -30,6 +30,8 @@
   var catalog = [];      // [{ id, name, price, emoji, category, description, bg, badge }]
   var recent = loadRecent(); // array of product ids, most-recent first
   var shipQuote = null;  // { signature, zip, options:[{service,label,price}], selected }
+  var searchQuery = '';  // active product-search query (drives gallery grid filtering)
+  var searchActiveIndex = -1; // highlighted dropdown result for keyboard nav
 
   function loadRecent() {
     try {
@@ -214,12 +216,24 @@
     activeFilter = filter;
     var shown = 0;
     document.querySelectorAll('.mr-prod-card').forEach(function (card) {
-      var match = filter === 'all' || card.dataset.category === filter;
+      var catMatch = filter === 'all' || card.dataset.category === filter;
+      var searchMatch = true;
+      if (searchQuery) {
+        var btn = card.querySelector('.mr-prod-add');
+        var p = btn ? findProduct(btn.dataset.id) : null;
+        searchMatch = p ? productMatches(p, searchQuery) : false;
+      }
+      var match = catMatch && searchMatch;
       card.classList.toggle('is-hidden', !match);
       if (match) shown++;
     });
     var empty = document.getElementById('mr-prod-empty');
-    if (empty) empty.hidden = shown > 0;
+    if (empty) {
+      empty.hidden = shown > 0;
+      empty.textContent = searchQuery
+        ? 'No pieces match “' + searchQuery + '”.'
+        : 'No pieces in this category yet — check back soon!';
+    }
   }
 
   function findProduct(id) {
@@ -227,6 +241,164 @@
       if (catalog[i].id === id) return catalog[i];
     }
     return null;
+  }
+
+  /* ── Product search ── */
+  var SEARCH_MAX = 7;
+
+  // Every whitespace token must appear somewhere in name/category/description.
+  function productMatches(p, q) {
+    q = String(q || '').trim().toLowerCase();
+    if (!q) return true;
+    var hay = (p.name + ' ' + p.category + ' ' + p.description).toLowerCase();
+    return q.split(/\s+/).every(function (tok) { return hay.indexOf(tok) !== -1; });
+  }
+
+  // Lower score = better match (name hits beat category/description hits).
+  function searchScore(p, q) {
+    q = q.toLowerCase();
+    var name = String(p.name).toLowerCase();
+    if (name === q) return 0;
+    if (name.indexOf(q) === 0) return 1;
+    if (name.indexOf(q) !== -1) return 2;
+    if (String(p.category).toLowerCase().indexOf(q) !== -1) return 3;
+    return 4;
+  }
+
+  function searchMatches(q) {
+    var list = catalog.filter(function (p) { return productMatches(p, q); });
+    list.sort(function (a, b) {
+      return searchScore(a, q) - searchScore(b, q) || a.name.localeCompare(b.name);
+    });
+    return list;
+  }
+
+  function openSearch() {
+    els.searchResults.hidden = false;
+    els.searchInput.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSearch() {
+    els.searchResults.hidden = true;
+    els.searchInput.setAttribute('aria-expanded', 'false');
+    els.searchInput.removeAttribute('aria-activedescendant');
+    searchActiveIndex = -1;
+  }
+
+  function renderSearchDropdown() {
+    if (!els.searchInput) return;
+    var q = els.searchInput.value.trim();
+    if (!q) { closeSearch(); return; }
+
+    var top = searchMatches(q).slice(0, SEARCH_MAX);
+    searchActiveIndex = -1;
+
+    if (!top.length) {
+      els.searchResults.innerHTML = '<div class="mr-search-empty">No products match “' + escapeHtml(q) + '”.</div>';
+      openSearch();
+      return;
+    }
+
+    var html = top.map(function (p, i) {
+      return '<button type="button" class="mr-search-item" role="option" id="mr-search-opt-' + i + '" data-id="' + escapeAttr(p.id) + '">' +
+        '<span class="mr-search-thumb" style="' + mediaBg(p) + '">' + mediaGlyph(p) + '</span>' +
+        '<span class="mr-search-meta">' +
+          '<span class="mr-search-name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="mr-search-cat">' + escapeHtml(p.category) + '</span>' +
+        '</span>' +
+        '<span class="mr-search-price">' + formatPrice(p.price) + '</span>' +
+      '</button>';
+    }).join('');
+    html += '<button type="button" class="mr-search-all" data-search-all>See all results for “' + escapeHtml(q) + '”</button>';
+    els.searchResults.innerHTML = html;
+
+    els.searchResults.querySelectorAll('.mr-search-item').forEach(function (btn) {
+      btn.addEventListener('click', function () { selectSearchProduct(btn.dataset.id); });
+    });
+    var allBtn = els.searchResults.querySelector('[data-search-all]');
+    if (allBtn) allBtn.addEventListener('click', function () { goToSearch(q); });
+
+    openSearch();
+  }
+
+  function searchItems() {
+    return els.searchResults.querySelectorAll('.mr-search-item');
+  }
+
+  function highlightSearch(index) {
+    var items = searchItems();
+    if (!items.length) return;
+    if (index < 0) index = items.length - 1;
+    if (index >= items.length) index = 0;
+    searchActiveIndex = index;
+    items.forEach(function (it, i) { it.classList.toggle('is-active', i === index); });
+    var active = items[index];
+    if (active) {
+      els.searchInput.setAttribute('aria-activedescendant', active.id);
+      active.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function selectSearchProduct(id) {
+    var p = findProduct(id);
+    if (!p) return;
+    closeSearch();
+    els.searchInput.blur();
+    openModalForProduct(p);
+  }
+
+  /* Enter / "see all": on the gallery, filter the grid in place; elsewhere,
+   * jump to the gallery with the query in the URL. */
+  function goToSearch(q) {
+    q = String(q || '').trim();
+    if (!q) return;
+    if (document.getElementById('mr-prod-grid')) {
+      searchQuery = q;
+      activeFilter = 'all';
+      closeSearch();
+      renderFilters();
+      applyFilter('all');
+      var grid = document.getElementById('mr-prod-grid');
+      if (grid && grid.scrollIntoView) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.location.href = '/gallery?q=' + encodeURIComponent(q);
+    }
+  }
+
+  function onSearchInput() {
+    renderSearchDropdown();
+    // Live-filter the gallery grid as the shopper types.
+    if (document.getElementById('mr-prod-grid')) {
+      searchQuery = els.searchInput.value.trim();
+      applyFilter(activeFilter);
+    }
+  }
+
+  function onSearchKeydown(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (els.searchResults.hidden) renderSearchDropdown(); else highlightSearch(searchActiveIndex + 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); highlightSearch(searchActiveIndex - 1); }
+    else if (e.key === 'Enter') {
+      var items = searchItems();
+      if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+        selectSearchProduct(items[searchActiveIndex].dataset.id);
+      } else {
+        goToSearch(els.searchInput.value);
+      }
+    } else if (e.key === 'Escape') {
+      closeSearch();
+    }
+  }
+
+  function setupSearch() {
+    if (!els.searchInput) return;
+    els.searchInput.addEventListener('input', onSearchInput);
+    els.searchInput.addEventListener('keydown', onSearchKeydown);
+    els.searchInput.addEventListener('focus', function () {
+      if (els.searchInput.value.trim()) renderSearchDropdown();
+    });
+    document.addEventListener('click', function (e) {
+      if (els.search && !els.search.contains(e.target)) closeSearch();
+    });
   }
 
   function loadCart() {
@@ -254,6 +426,9 @@
     cartFoot: document.getElementById('mr-cart-foot'),
     cartClear: document.getElementById('mr-cart-clear'),
     checkout: document.getElementById('mr-cart-checkout'),
+    search: document.getElementById('mr-search'),
+    searchInput: document.getElementById('mr-search-input'),
+    searchResults: document.getElementById('mr-search-results'),
     shipZip: document.getElementById('mr-ship-zip'),
     shipEstimate: document.getElementById('mr-ship-estimate'),
     shipStatus: document.getElementById('mr-ship-status'),
@@ -1214,13 +1389,31 @@
   /* ── Products loader ──
    * Render the seed immediately, then override from the API when available. */
   function loadProducts() {
-    // Deep link: /gallery?cat=Animals opens with that category tab active.
+    // Deep links: /gallery?cat=Animals opens that category; ?q=fox pre-filters
+    // the grid by a search query (and fills the nav search box).
     try {
-      var cat = new URLSearchParams(location.search).get('cat');
+      var params = new URLSearchParams(location.search);
+      var cat = params.get('cat');
       if (cat) requestedFilter = cat;
+      var q = params.get('q');
+      if (q && document.getElementById('mr-prod-grid')) {
+        searchQuery = q.trim();
+        if (els.searchInput) els.searchInput.value = searchQuery;
+      }
     } catch (e) { /* very old browser — default to All */ }
     setCatalog(SEED_PRODUCTS);
+    fetchCatalog();
+  }
+
+  /* Fetch the live catalog and re-render everything that derives from it —
+   * product grid, featured teaser, recently-viewed, cart, and (if open) the
+   * search dropdown. Called on load and whenever the tab is refocused, so
+   * products added/edited/removed in the admin show up without a manual
+   * reload and the search always reflects the current catalog. */
+  var lastCatalogFetch = 0;
+  function fetchCatalog() {
     if (!window.fetch) return;
+    lastCatalogFetch = Date.now();
     fetch('/api/products', { headers: { 'Accept': 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
@@ -1228,9 +1421,10 @@
           setCatalog(data.products);
           renderRecentlyViewed();
           renderCart();
+          if (els.searchResults && !els.searchResults.hidden) renderSearchDropdown();
         }
       })
-      .catch(function () { /* offline or no backend — seed already rendered */ });
+      .catch(function () { /* offline or no backend — keep what we have */ });
   }
 
   /* ── Wire up events ── */
@@ -1333,6 +1527,19 @@
         if (cleaned !== els.shipZip.value) els.shipZip.value = cleaned;
       });
     }
+
+    // Product search (nav)
+    setupSearch();
+
+    // Refresh the catalog (and thus search) when the tab is refocused, so
+    // admin edits appear without a manual reload. Throttled to avoid churn.
+    function refreshOnReturn() {
+      if (document.visibilityState === 'visible' && Date.now() - lastCatalogFetch > 8000) {
+        fetchCatalog();
+      }
+    }
+    document.addEventListener('visibilitychange', refreshOnReturn);
+    window.addEventListener('focus', refreshOnReturn);
 
     // Checkout → Stripe (falls back to a friendly message if unconfigured).
     els.checkout.addEventListener('click', startCheckout);
