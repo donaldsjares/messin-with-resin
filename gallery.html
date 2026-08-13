@@ -43,6 +43,11 @@
       <a href="/#about">About</a>
     </div>
     <div class="mr-nav-right">
+      <div class="mr-search" id="mr-search">
+        <span class="mr-search-icon" aria-hidden="true">🔍</span>
+        <input type="search" class="mr-search-input" id="mr-search-input" placeholder="Search products…" aria-label="Search products" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="mr-search-results" aria-autocomplete="list">
+        <div class="mr-search-results" id="mr-search-results" role="listbox" aria-label="Product search results" hidden></div>
+      </div>
       <button class="mr-cart" id="mr-cart-toggle" aria-label="Open cart">🛒 <span>Cart (<span class="mr-cart-count" data-cart-count>0</span>)</span></button>
       <button class="mr-btn" data-scroll-to="#shop">Shop Now</button>
       <button class="mr-hamburger" id="mr-hamburger" aria-label="Open menu" aria-expanded="false">

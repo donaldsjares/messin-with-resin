@@ -41,6 +41,27 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-cart-count { font-variant-numeric: tabular-nums; }
 .mr-cart.is-bump { animation: mr-bump 0.4s ease; }
 @keyframes mr-bump { 0% { transform: scale(1); } 30% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+/* ── NAV SEARCH ── */
+.mr-search { position: relative; display: flex; align-items: center; gap: 7px; background: var(--cream-mid); border: 1px solid var(--border); border-radius: 100px; padding: 7px 14px; width: 210px; transition: border-color 0.15s, background 0.15s; }
+.mr-search:focus-within { border-color: var(--rose); background: #fff; }
+.mr-search-icon { font-size: 12px; opacity: 0.6; line-height: 1; }
+.mr-search-input { flex: 1; min-width: 0; border: none; background: none; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink); }
+.mr-search-input:focus { outline: none; }
+.mr-search-input::placeholder { color: var(--ink-light); }
+.mr-search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.mr-search-results { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - 24px); background: #fff; border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 16px 44px rgba(26,26,46,0.16); padding: 6px; z-index: 120; max-height: 72vh; overflow-y: auto; }
+.mr-search-results[hidden] { display: none; }
+.mr-search-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; border-radius: 11px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+.mr-search-item:hover, .mr-search-item.is-active { background: var(--rose-pale); }
+.mr-search-thumb { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 21px; background: var(--cream-mid); overflow: hidden; }
+.mr-search-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mr-search-name { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-search-cat { font-size: 11px; color: var(--ink-light); }
+.mr-search-price { font-size: 12.5px; font-weight: 700; color: var(--rose); white-space: nowrap; }
+.mr-search-empty { padding: 16px 12px; font-size: 13px; color: var(--ink-light); text-align: center; }
+.mr-search-all { display: block; width: 100%; text-align: center; background: none; border: none; border-top: 1px solid var(--border); margin-top: 4px; padding: 11px; font-size: 12px; font-weight: 600; color: var(--ink-mid); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+.mr-search-all:hover { color: var(--rose); }
 .mr-btn { background: var(--rose); color: #fff; border: none; padding: 11px 24px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 4px 14px rgba(255,107,107,0.35); transition: transform 0.15s, box-shadow 0.15s; }
 .mr-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,107,107,0.45); }
 .mr-btn-soft { background: var(--rose-pale); color: var(--rose-deep); border: none; padding: 10px 22px; border-radius: 100px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -404,6 +425,7 @@ body.mr-no-scroll { overflow: hidden; }
    These breakpoints keep it usable on tablets and phones. */
 @media (max-width: 1024px) {
   .mr-nav { padding: 0 32px; }
+  .mr-search { width: 178px; }
   .mr-hero-left { padding: 56px 40px; }
   .mr-prod-grid { grid-template-columns: repeat(3, 1fr); }
   .mr-gallery-grid { grid-template-columns: repeat(3, 1fr); }
@@ -414,6 +436,7 @@ body.mr-no-scroll { overflow: hidden; }
 @media (max-width: 768px) {
   .mr-prod-grid { grid-template-columns: repeat(2, 1fr); }
   .mr-hamburger { display: flex; }
+  .mr-search { width: 152px; }
   .mr-nav-links { position: absolute; top: 104px; left: 0; right: 0; flex-direction: column; gap: 0; background: #fff; border-bottom: 1px solid var(--border); box-shadow: 0 12px 32px rgba(26,26,46,0.08); padding: 8px 0; transform: translateY(-12px); opacity: 0; pointer-events: none; transition: transform 0.2s, opacity 0.2s; }
   .mr-nav-links.is-open { transform: translateY(0); opacity: 1; pointer-events: auto; }
   .mr-nav-links a { padding: 14px 32px; font-size: 15px; }
@@ -441,7 +464,10 @@ body.mr-no-scroll { overflow: hidden; }
 
 @media (max-width: 560px) {
   .mr-nav { padding: 0 20px; }
-  .mr-nav-right .mr-btn { display: none; }
+  .mr-nav-right .mr-btn { display: none !important; } /* !important beats the inline display style */
+  .mr-nav-right { gap: 10px; }
+  .mr-search { flex: 0 1 150px; width: auto; min-width: 56px; padding: 6px 12px; }
+  .mr-logo-sub { display: none; }
   .mr-hero-left { padding: 40px 24px; }
   .mr-hero-h1 { font-size: 38px; }
   .mr-hero-h1-italic { font-size: 40px; }
@@ -466,6 +492,18 @@ body.mr-no-scroll { overflow: hidden; }
   .mr-modal-info { padding: 28px 26px 32px; }
   .mr-form-panel { padding: 32px 24px 28px; }
   .mr-field-row { grid-template-columns: 1fr; }
+}
+
+/* Smaller phones: drop the wordmark (keep the mark) so the search has room. */
+@media (max-width: 480px) {
+  .mr-logo-name { display: none; }
+}
+
+/* Very small phones (≈320px): tighten spacing so nothing overflows. */
+@media (max-width: 360px) {
+  .mr-nav { padding: 0 14px; }
+  .mr-nav-right { gap: 8px; }
+  .mr-search { flex-basis: 104px; min-width: 44px; }
 }
 
 /* ── HOW IT WORKS (4-step process) ── */
