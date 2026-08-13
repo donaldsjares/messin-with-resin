@@ -4,6 +4,8 @@
 
   var products = [];
   var optionGroups = [];
+  var productsDirty = false;   // unsaved edits in the product editor?
+  var lastAdminRefresh = 0;    // throttle for refresh-on-refocus
 
   var el = {
     loading: document.getElementById('ad-loading'),
@@ -267,12 +269,28 @@
     loadOrders();
     loadSite();
     loadOptions();
-    setStatus('Loading products…', 'info');
-    api('/api/products').then(function (r) { return r.json(); }).then(function (data) {
+    loadProducts();
+  }
+
+  /* Fetch products into the editor. Clears the dirty flag on success. Pass
+   * silent=true for a background refresh so it doesn't flash the status line. */
+  function loadProducts(silent) {
+    if (!silent) setStatus('Loading products…', 'info');
+    return api('/api/products').then(function (r) { return r.json(); }).then(function (data) {
       products = (data.products || []).map(clone);
       render();
-      setStatus('');
-    }).catch(function () { setStatus('Could not load products.', 'err'); });
+      productsDirty = false;
+      if (!silent) setStatus('');
+    }).catch(function () { if (!silent) setStatus('Could not load products.', 'err'); });
+  }
+
+  function markProductsDirty() { productsDirty = true; }
+
+  /* Re-fetch products when the tab is refocused — but never while there are
+   * unsaved edits (that would clobber the owner's work). */
+  function refreshProducts() {
+    if (el.editor.hidden || productsDirty) return;
+    loadProducts(true);
   }
 
   function clone(p) {
@@ -346,6 +364,7 @@
     removeBtn.addEventListener('click', function () {
       field('image').value = '';
       paintSwatch();
+      markProductsDirty();
     });
 
     node.querySelector('[data-up]').addEventListener('click', function () { collect(); move(index, -1); });
@@ -354,6 +373,7 @@
       collect();
       products.splice(index, 1);
       render();
+      markProductsDirty();
       setStatus('Product removed — remember to Save.', 'info');
     });
 
@@ -397,6 +417,7 @@
     products[index] = products[target];
     products[target] = tmp;
     render();
+    markProductsDirty();
   }
 
   el.add.addEventListener('click', function () {
@@ -406,10 +427,16 @@
       bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: null, featured: false
     });
     render();
+    markProductsDirty();
     var cards = el.list.querySelectorAll('.ad-prod');
     var last = cards[cards.length - 1];
     if (last) last.querySelector('[data-field="name"]').focus();
   });
+
+  // Any typing / select / checkbox / file-input change in the product list
+  // counts as an unsaved edit. Delegated so it survives re-renders.
+  el.list.addEventListener('input', markProductsDirty);
+  el.list.addEventListener('change', markProductsDirty);
 
   function publish(successMsg) {
     el.save.disabled = true;
@@ -421,6 +448,7 @@
         if (res.status === 200) {
           products = res.body.products.map(clone);
           render();
+          productsDirty = false;
           setStatus(successMsg || 'Saved! Changes are live.', 'ok');
         } else if (res.status === 401) {
           setStatus('Session expired — please log in again.', 'err');
@@ -481,6 +509,7 @@
     uploadImageFile(file).then(function (url) {
       imageInput.value = url;
       repaint();
+      markProductsDirty();
       setStatus('Photo added — remember to Save.', 'info');
     }).catch(function (e) {
       if (e.code === 401) { setStatus(e.message, 'err'); show(el.login); el.password.focus(); }
@@ -743,6 +772,18 @@
       img.src = url;
     });
   }
+
+  /* Keep the admin fresh when the tab is refocused: re-fetch products (unless
+   * there are unsaved edits) and orders. Throttled to once per 8s. */
+  function refreshAdminOnReturn() {
+    if (document.visibilityState !== 'visible' || el.editor.hidden) return;
+    if (Date.now() - lastAdminRefresh < 8000) return;
+    lastAdminRefresh = Date.now();
+    refreshProducts();
+    loadOrders();
+  }
+  document.addEventListener('visibilitychange', refreshAdminOnReturn);
+  window.addEventListener('focus', refreshAdminOnReturn);
 
   boot();
 })();
