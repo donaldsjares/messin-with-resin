@@ -6,6 +6,7 @@
   var optionGroups = [];
   var productsDirty = false;   // unsaved edits in the product editor?
   var lastAdminRefresh = 0;    // throttle for refresh-on-refocus
+  var productFilterQuery = ''; // admin product-list filter text
 
   var el = {
     loading: document.getElementById('ad-loading'),
@@ -23,6 +24,8 @@
     status: document.getElementById('ad-status'),
     logout: document.getElementById('ad-logout'),
     template: document.getElementById('ad-prod-template'),
+    prodSearch: document.getElementById('ad-prod-search'),
+    prodFilterCount: document.getElementById('ad-prod-filter-count'),
     siteSave: document.getElementById('ad-site-save'),
     siteStatus: document.getElementById('ad-site-status'),
     orders: document.getElementById('ad-orders'),
@@ -313,6 +316,30 @@
       return;
     }
     products.forEach(function (p, i) { el.list.appendChild(buildCard(p, i)); });
+    applyProductFilter();
+  }
+
+  /* Filter the product editor by name/category. Cards are hidden (not removed)
+   * so save, reorder, and collect still operate on the full list. Reads each
+   * card's live field values so it reflects unsaved edits too. */
+  function applyProductFilter() {
+    var q = productFilterQuery.trim().toLowerCase();
+    var tokens = q ? q.split(/\s+/) : [];
+    var cards = el.list.querySelectorAll('.ad-prod');
+    var shown = 0;
+    cards.forEach(function (card) {
+      function v(name) {
+        var f = card.querySelector('[data-field="' + name + '"]');
+        return (f ? f.value : '').toLowerCase();
+      }
+      var hay = v('name') + ' ' + v('category');
+      var match = tokens.every(function (t) { return hay.indexOf(t) !== -1; });
+      card.classList.toggle('ad-prod-hidden', !match);
+      if (match) shown++;
+    });
+    if (el.prodFilterCount) {
+      el.prodFilterCount.textContent = q ? (shown + ' of ' + cards.length + ' shown') : '';
+    }
   }
 
   function buildCard(p, index) {
@@ -422,6 +449,11 @@
 
   el.add.addEventListener('click', function () {
     collect();
+    // Clear any active filter so the new (empty) product is visible + focusable.
+    if (productFilterQuery) {
+      productFilterQuery = '';
+      if (el.prodSearch) el.prodSearch.value = '';
+    }
     products.push({
       id: '', name: '', category: '', price: '', emoji: '🎨', description: '', image: '',
       bg: 'linear-gradient(135deg,#fce7f3,#ede9fe)', badge: null, featured: false
@@ -437,6 +469,14 @@
   // counts as an unsaved edit. Delegated so it survives re-renders.
   el.list.addEventListener('input', markProductsDirty);
   el.list.addEventListener('change', markProductsDirty);
+
+  // Filter the product list (separate from edits — never marks dirty).
+  if (el.prodSearch) {
+    el.prodSearch.addEventListener('input', function () {
+      productFilterQuery = el.prodSearch.value;
+      applyProductFilter();
+    });
+  }
 
   function publish(successMsg) {
     el.save.disabled = true;
