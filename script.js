@@ -59,6 +59,9 @@
         emoji: p.emoji || '🎨',
         description: p.description || '',
         dimensions: p.dimensions || '',
+        sizes: Array.isArray(p.sizes) ? p.sizes.map(function (s) {
+          return { label: s.label || '', dimensions: s.dimensions || '', price: Number(s.price) || 0 };
+        }) : [],
         image: p.image || '',
         bg: p.bg || 'var(--cream-mid)',
         badge: p.badge && p.badge.type ? p.badge : null,
@@ -173,7 +176,7 @@
             ? '<div class="mr-prod-dim"><span>Dimensions</span> ' + escapeHtml(p.dimensions) + '</div>'
             : '') +
           '<div class="mr-prod-row">' +
-            '<div class="mr-prod-price">From ' + formatPrice(p.price) + '</div>' +
+            '<div class="mr-prod-price">From ' + formatPrice(fromPrice(p)) + '</div>' +
             '<button class="mr-prod-add" data-id="' + escapeAttr(p.id) + '">Customize</button>' +
           '</div>' +
         '</div>' +
@@ -449,6 +452,7 @@
     modalPrice: document.getElementById('mr-modal-price'),
     modalDesc: document.getElementById('mr-modal-desc'),
     modalDim: document.getElementById('mr-modal-dim'),
+    modalSize: document.getElementById('mr-modal-size'),
     modalQty: document.getElementById('mr-modal-qty'),
     modalDec: document.getElementById('mr-modal-dec'),
     modalInc: document.getElementById('mr-modal-inc'),
@@ -847,7 +851,7 @@
         '<div class="mr-rec-img" style="' + mediaBg(p) + '">' + mediaGlyph(p) + '</div>' +
         '<div class="mr-rec-mid">' +
           '<div class="mr-rec-name">' + escapeHtml(p.name) + '</div>' +
-          '<div class="mr-rec-price">From ' + formatPrice(p.price) + '</div>' +
+          '<div class="mr-rec-price">From ' + formatPrice(fromPrice(p)) + '</div>' +
         '</div>' +
         '<button type="button" class="mr-rec-add" aria-label="Add ' + escapeHtml(p.name) + ' to cart">+</button>';
       row.querySelector('.mr-rec-add').addEventListener('click', function () {
@@ -883,7 +887,7 @@
       card.innerHTML =
         '<div class="mr-recent-thumb" style="' + mediaBg(p) + '">' + mediaGlyph(p) + '</div>' +
         '<div class="mr-recent-name">' + escapeHtml(p.name) + '</div>' +
-        '<div class="mr-recent-price">From ' + formatPrice(p.price) + '</div>';
+        '<div class="mr-recent-price">From ' + formatPrice(fromPrice(p)) + '</div>';
       card.addEventListener('click', function () { openModalForProduct(p); });
       els.recentStrip.appendChild(card);
     });
@@ -933,6 +937,18 @@
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+  }
+
+  /* Lowest price to advertise: the cheapest priced size when a product has
+   * sizes, otherwise its base price. */
+  function fromPrice(p) {
+    if (p && p.sizes && p.sizes.length) {
+      var priced = p.sizes
+        .map(function (s) { return Number(s.price) || 0; })
+        .filter(function (n) { return n > 0; });
+      if (priced.length) return Math.min.apply(null, priced);
+    }
+    return p ? p.price : 0;
   }
 
   function escapeHtml(s) {
@@ -1055,18 +1071,11 @@
     els.modalMedia.style.cssText = p.image ? mediaBg(p) : '';
     els.modalCat.textContent = p.category;
     els.modalName.textContent = p.name;
-    els.modalPrice.textContent = 'From ' + formatPrice(p.price);
+    els.modalPrice.textContent = 'From ' + formatPrice(fromPrice(p));
     els.modalDesc.textContent = p.description;
-    if (els.modalDim) {
-      if (p.dimensions) {
-        els.modalDim.innerHTML = '<span>Dimensions</span> ' + escapeHtml(p.dimensions);
-        els.modalDim.hidden = false;
-      } else {
-        els.modalDim.textContent = '';
-        els.modalDim.hidden = true;
-      }
-    }
+    setModalDimensions(p.dimensions);
     els.modalQty.textContent = modalQty;
+    renderModalSize(p);   // may override price + dimensions with the first size
     renderModalOptions();
 
     recordRecentlyViewed(p.id);
@@ -1075,6 +1084,49 @@
     els.modal.setAttribute('aria-hidden', 'false');
     activateTrap(els.modal);
     els.modalAdd.focus();
+  }
+
+  function setModalDimensions(dim) {
+    if (!els.modalDim) return;
+    if (dim) {
+      els.modalDim.innerHTML = '<span>Dimensions</span> ' + escapeHtml(dim);
+      els.modalDim.hidden = false;
+    } else {
+      els.modalDim.textContent = '';
+      els.modalDim.hidden = true;
+    }
+  }
+
+  /* Size dropdown: when a product has sizes, each picks its own price and
+   * dimensions. Defaults to the first size. */
+  function renderModalSize(p) {
+    if (!els.modalSize) return;
+    if (!p.sizes || !p.sizes.length) {
+      els.modalSize.hidden = true;
+      els.modalSize.innerHTML = '';
+      return;
+    }
+    var options = p.sizes.map(function (s, i) {
+      var lbl = s.label || s.dimensions || ('Option ' + (i + 1));
+      return '<option value="' + i + '">' + escapeHtml(lbl) + ' — ' + formatPrice(Number(s.price) || 0) + '</option>';
+    }).join('');
+    els.modalSize.innerHTML =
+      '<label class="mr-size-label" for="mr-size-select">Size</label>' +
+      '<select class="mr-size-select" id="mr-size-select">' + options + '</select>';
+    els.modalSize.hidden = false;
+    var sel = els.modalSize.querySelector('select');
+    sel.addEventListener('change', function () { selectSize(p, Number(sel.value)); });
+    selectSize(p, 0);
+  }
+
+  function selectSize(p, idx) {
+    if (!modalItem) return;
+    var s = p.sizes && p.sizes[idx];
+    if (!s) return;
+    modalItem.sizeLabel = s.label || s.dimensions || ('Option ' + (idx + 1));
+    modalItem.price = Number(s.price) || 0;
+    els.modalPrice.textContent = formatPrice(modalItem.price);
+    setModalDimensions(s.dimensions);
   }
 
   /* Render the global customization option controls into the modal. */
@@ -1440,6 +1492,7 @@
       if (!modalItem) return;
       var options = collectModalOptions();
       if (options === null) return; // a required option is missing — stay open
+      if (modalItem.sizeLabel) options.Size = modalItem.sizeLabel;
       var added = modalQty;
       var item = modalItem;
       closeModal();

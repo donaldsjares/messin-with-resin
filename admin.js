@@ -24,6 +24,7 @@
     status: document.getElementById('ad-status'),
     logout: document.getElementById('ad-logout'),
     template: document.getElementById('ad-prod-template'),
+    sizeTemplate: document.getElementById('ad-size-template'),
     prodSearch: document.getElementById('ad-prod-search'),
     prodFilterCount: document.getElementById('ad-prod-filter-count'),
     siteSave: document.getElementById('ad-site-save'),
@@ -300,6 +301,9 @@
     return {
       id: p.id, name: p.name, category: p.category || '', price: p.price,
       emoji: p.emoji || '🎨', description: p.description || '', dimensions: p.dimensions || '', weight: (p.weight != null ? p.weight : ''), image: p.image || '',
+      sizes: Array.isArray(p.sizes) ? p.sizes.map(function (s) {
+        return { label: s.label || '', dimensions: s.dimensions || '', price: (s.price != null ? s.price : '') };
+      }) : [],
       bg: p.bg || 'linear-gradient(135deg,#fce7f3,#ede9fe)',
       badge: p.badge && p.badge.type ? { type: p.badge.type, label: p.badge.label || '' } : null,
       featured: !!p.featured
@@ -360,6 +364,29 @@
     field('image').value = p.image || '';
     field('featured').checked = !!p.featured;
 
+    // Sizes sub-editor
+    var sizeList = node.querySelector('[data-size-list]');
+    function addSizeRow(size) {
+      var row = el.sizeTemplate.content.firstElementChild.cloneNode(true);
+      function sf(name) { return row.querySelector('[data-size-field="' + name + '"]'); }
+      sf('label').value = size && size.label != null ? size.label : '';
+      sf('dimensions').value = size && size.dimensions != null ? size.dimensions : '';
+      sf('price').value = size && size.price != null && size.price !== '' ? size.price : '';
+      row.querySelector('[data-size-del]').addEventListener('click', function () {
+        row.parentNode.removeChild(row);
+        markProductsDirty();
+      });
+      sizeList.appendChild(row);
+    }
+    (p.sizes || []).forEach(function (s) { addSizeRow(s); });
+    node.querySelector('[data-size-add]').addEventListener('click', function () {
+      addSizeRow(null);
+      markProductsDirty();
+      var rows = sizeList.querySelectorAll('.ad-size-row');
+      var last = rows[rows.length - 1];
+      if (last) last.querySelector('[data-size-field="label"]').focus();
+    });
+
     var fileInput = node.querySelector('[data-file]');
     var uploadWrap = node.querySelector('.ad-upload');
     var uploadLabel = node.querySelector('[data-upload-label]');
@@ -419,6 +446,15 @@
       }
       var badgeType = v('badgeType');
       var featuredEl = card.querySelector('[data-field="featured"]');
+      var sizes = [];
+      card.querySelectorAll('.ad-size-row').forEach(function (row) {
+        function sv(name) {
+          var f = row.querySelector('[data-size-field="' + name + '"]');
+          return f ? f.value.trim() : '';
+        }
+        var label = sv('label'), dims = sv('dimensions'), price = sv('price');
+        if (label || dims || price) sizes.push({ label: label, dimensions: dims, price: price });
+      });
       next.push({
         id: products[i] ? products[i].id : '',
         name: v('name').trim(),
@@ -428,6 +464,7 @@
         description: v('description').trim(),
         dimensions: v('dimensions').trim(),
         weight: v('weight').trim(),
+        sizes: sizes,
         image: v('image').trim(),
         bg: v('bg').trim(),
         badge: badgeType ? { type: badgeType, label: v('badgeLabel').trim() } : null,

@@ -211,6 +211,11 @@
           <label>Dimensions</label>
           <input type="text" data-field="dimensions" placeholder='e.g. 6" x 4" x 2"'>
         </div>
+        <div class="ad-field ad-col-span ad-sizes">
+          <label>Sizes <span class="ad-sizes-hint">optional — each has its own dimensions &amp; price, shown as a dropdown on the product</span></label>
+          <div class="ad-size-list" data-size-list></div>
+          <button type="button" class="ad-btn-soft ad-size-add" data-size-add>+ Add size</button>
+        </div>
         <div class="ad-field ad-col-span">
           <label>Description</label>
           <textarea data-field="description" rows="2"></textarea>
@@ -237,6 +242,15 @@
           <button type="button" class="ad-del" data-del>Delete product</button>
         </div>
       </div>
+    </div>
+  </template>
+
+  <template id="ad-size-template">
+    <div class="ad-size-row">
+      <input type="text" data-size-field="label" placeholder="Label (e.g. Small)">
+      <input type="text" data-size-field="dimensions" placeholder='Dimensions (e.g. 4&quot; x 3&quot;)'>
+      <input type="number" data-size-field="price" min="0" step="0.01" placeholder="Price">
+      <button type="button" class="ad-size-del" data-size-del title="Remove size" aria-label="Remove size">✕</button>
     </div>
   </template>
 
