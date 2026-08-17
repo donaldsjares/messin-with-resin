@@ -130,6 +130,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); c
 @media (max-width: 900px) { .ad-ship-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) { .ad-ship-grid { grid-template-columns: 1fr; } }
 
+/* Per-product sizes editor */
+.ad-sizes-hint { font-weight: 400; font-size: 11.5px; color: var(--ink-light); }
+.ad-size-list { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 10px; }
+.ad-size-row { display: grid; grid-template-columns: 1fr 1.3fr 0.7fr auto; gap: 8px; align-items: center; }
+.ad-size-row input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; font-size: 13px; font-family: inherit; color: var(--ink); background: #fff; }
+.ad-size-row input:focus { outline: none; border-color: var(--rose); }
+.ad-size-del { width: 30px; height: 30px; border: none; border-radius: 8px; background: var(--cream-mid); color: var(--ink-mid); cursor: pointer; font-size: 13px; }
+.ad-size-del:hover { background: #fde2e2; color: var(--rose-deep); }
+.ad-size-add { align-self: flex-start; padding: 7px 14px; font-size: 12.5px; }
+@media (max-width: 560px) { .ad-size-row { grid-template-columns: 1fr 1fr auto; } }
+
 /* Product list filter */
 .ad-prod-filter { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .ad-prod-search { flex: 1; max-width: 420px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; color: var(--ink); background: #fff; }
