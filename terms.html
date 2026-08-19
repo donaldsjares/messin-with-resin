@@ -153,7 +153,29 @@
         <span>Subtotal</span>
         <span class="mr-cart-total" data-cart-total>$0</span>
       </div>
-      <p class="mr-cart-note">Shipping &amp; custom options calculated at checkout.</p>
+
+      <!-- Shipping estimate -->
+      <div class="mr-ship">
+        <div class="mr-ship-label">Estimate shipping</div>
+        <div class="mr-ship-row">
+          <input class="mr-ship-zip" id="mr-ship-zip" type="text" inputmode="numeric" maxlength="5"
+                 placeholder="ZIP code" aria-label="Destination ZIP code" autocomplete="postal-code">
+          <button type="button" class="mr-ship-btn" id="mr-ship-estimate">Estimate</button>
+        </div>
+        <div class="mr-ship-status" id="mr-ship-status" hidden></div>
+        <div class="mr-ship-options" id="mr-ship-options" hidden></div>
+      </div>
+
+      <div class="mr-cart-total-row mr-cart-ship-line" id="mr-cart-ship-line" hidden>
+        <span>Shipping</span>
+        <span id="mr-cart-shipping">—</span>
+      </div>
+      <div class="mr-cart-total-row mr-cart-grand-line" id="mr-cart-grand-line" hidden>
+        <span>Total</span>
+        <span class="mr-cart-grand" id="mr-cart-grand">$0</span>
+      </div>
+
+      <p class="mr-cart-note">Shipping is an estimate; custom options are confirmed after you order.</p>
       <button class="mr-comm-btn mr-cart-checkout" id="mr-cart-checkout">Checkout →</button>
       <button class="mr-cart-clear" id="mr-cart-clear">Clear cart</button>
     </div>
