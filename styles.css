@@ -236,6 +236,8 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-footer-col ul { list-style: none; }
 .mr-footer-col li { margin-bottom: 12px; font-size: 12.5px; color: #8a8a9e; cursor: pointer; transition: color 0.15s; }
 .mr-footer-col li:hover { color: #ffd93d; }
+.mr-footer-notice { margin: 0 0 28px; padding: 14px 18px; background: #20203a; border: 1px solid #2e2e48; border-radius: 12px; font-size: 12.5px; line-height: 1.7; color: #a6a6bd; text-align: center; }
+.mr-footer-notice strong { color: #ffd93d; font-weight: 600; }
 .mr-footer-bottom { display: flex; justify-content: space-between; align-items: center; }
 .mr-footer-copy { font-size: 11.5px; color: #5a5a72; }
 .mr-footer-links { display: flex; gap: 20px; }
