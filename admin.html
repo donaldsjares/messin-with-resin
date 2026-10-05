@@ -134,8 +134,12 @@
           <label>Flat-rate fallback (USD)</label>
           <input type="number" data-ship-field="flatRate" min="0" step="0.01" placeholder="e.g. 6.00">
         </div>
+        <div class="ad-field">
+          <label>Texas sales tax (%)</label>
+          <input type="number" data-ship-field="salesTaxRate" min="0" max="100" step="0.01" placeholder="e.g. 8.25">
+        </div>
       </div>
-      <p class="ad-note">The flat-rate fallback is used when live USPS rates are unavailable (USPS API not configured, or a lookup fails). Leave the fee/threshold blank to disable them.</p>
+      <p class="ad-note">The flat-rate fallback is used when live USPS rates are unavailable (USPS API not configured, or a lookup fails). Leave the fee/threshold blank to disable them. <strong>Texas sales tax</strong> is charged on the merchandise + shipping for orders shipping to a Texas ZIP; leave blank for none.</p>
       <div class="ad-toolbar">
         <button class="ad-btn" id="ad-ship-save">Save shipping settings</button>
         <span class="ad-spacer"></span>
