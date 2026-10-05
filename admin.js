@@ -161,6 +161,9 @@
     totalsCol.appendChild(totalRow('Subtotal', money(o.subtotal)));
     var shipLabel = 'Shipping' + (o.shipping && o.shipping.label ? ' (' + o.shipping.label + ')' : '');
     totalsCol.appendChild(totalRow(shipLabel, money(o.shipping && o.shipping.price)));
+    if (o.tax) {
+      totalsCol.appendChild(totalRow('Sales tax' + (o.taxRate ? ' (' + o.taxRate + '%)' : ''), money(o.tax)));
+    }
     totalsCol.appendChild(totalRow('Total', money(o.total), 'ad-order-total'));
     body.appendChild(totalsCol);
 

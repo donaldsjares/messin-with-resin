@@ -438,6 +438,8 @@
     shipOptions: document.getElementById('mr-ship-options'),
     shipLine: document.getElementById('mr-cart-ship-line'),
     shipping: document.getElementById('mr-cart-shipping'),
+    taxLine: document.getElementById('mr-cart-tax-line'),
+    tax: document.getElementById('mr-cart-tax'),
     grandLine: document.getElementById('mr-cart-grand-line'),
     grand: document.getElementById('mr-cart-grand'),
     hamburger: document.getElementById('mr-hamburger'),
@@ -676,6 +678,8 @@
           zip: zip,
           options: (res.body.options || []).slice(),
           note: res.body.note || '',
+          taxRate: Number(res.body.taxRate) || 0,
+          taxApplies: !!res.body.taxApplies,
           selected: 0
         };
         renderShipOptions();
@@ -691,6 +695,7 @@
       els.shipOptions.hidden = true;
       els.shipOptions.innerHTML = '';
       els.shipLine.hidden = true;
+      if (els.taxLine) els.taxLine.hidden = true;
       els.grandLine.hidden = true;
       setShipStatus((shipQuote && shipQuote.note) || 'No shipping options available.');
       return;
@@ -716,10 +721,20 @@
 
   function updateShipTotals() {
     if (!shipQuote || !shipQuote.options.length) return;
+    var sub = cartTotal();
     var ship = shipQuote.options[shipQuote.selected].price;
+    var tax = shipQuote.taxApplies ? Math.round((shipQuote.taxRate / 100) * (sub + ship) * 100) / 100 : 0;
     els.shipping.textContent = ship > 0 ? formatPrice(ship) : 'Free';
-    els.grand.textContent = formatPrice(cartTotal() + ship);
     els.shipLine.hidden = false;
+    if (els.taxLine) {
+      if (tax > 0) {
+        els.tax.textContent = formatPrice(tax);
+        els.taxLine.hidden = false;
+      } else {
+        els.taxLine.hidden = true;
+      }
+    }
+    els.grand.textContent = formatPrice(sub + ship + tax);
     els.grandLine.hidden = false;
   }
 
@@ -732,6 +747,7 @@
       els.shipOptions.hidden = true;
       els.shipOptions.innerHTML = '';
       els.shipLine.hidden = true;
+      if (els.taxLine) els.taxLine.hidden = true;
       els.grandLine.hidden = true;
       if (cartCount() > 0) setShipStatus('Cart changed — re-estimate shipping.');
       else setShipStatus('');

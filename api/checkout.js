@@ -62,7 +62,10 @@ module.exports = async function handler(req, res) {
   if (!chosen) chosen = quote.options[0];
 
   var id = 'ord_' + crypto.randomBytes(9).toString('hex');
-  var total = Math.round((quote.subtotal + chosen.price) * 100) / 100;
+  // Sales tax: flat rate on (merchandise + shipping) for Texas destinations.
+  var taxRate = quote.taxApplies ? quote.taxRate : 0;
+  var tax = Math.round((taxRate / 100) * (quote.subtotal + chosen.price) * 100) / 100;
+  var total = Math.round((quote.subtotal + chosen.price + tax) * 100) / 100;
 
   var order = {
     id: id,
@@ -72,6 +75,8 @@ module.exports = async function handler(req, res) {
     items: quote.lineItems,
     subtotal: quote.subtotal,
     shipping: { service: chosen.service, label: chosen.label, price: chosen.price },
+    tax: tax,
+    taxRate: taxRate,
     total: total,
     destinationZIP: String(body.destinationZIP).trim()
   };
@@ -93,6 +98,19 @@ module.exports = async function handler(req, res) {
       }
     };
   });
+
+  // Sales tax as its own line (covers merchandise + shipping) so it shows
+  // clearly on the Stripe checkout and receipt.
+  if (tax > 0) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: 'usd',
+        unit_amount: cents(tax),
+        product_data: { name: 'Sales Tax (TX ' + taxRate + '%)' }
+      }
+    });
+  }
 
   var base = baseUrl(req);
   var params = {

@@ -312,7 +312,7 @@ body.mr-no-scroll { overflow: hidden; }
 .mr-ship-opt input { accent-color: var(--rose); margin: 0; }
 .mr-ship-opt-name { flex: 1; font-weight: 500; color: var(--ink); }
 .mr-ship-opt-price { font-weight: 700; color: var(--ink); }
-.mr-cart-ship-line[hidden], .mr-cart-grand-line[hidden] { display: none; }
+.mr-cart-ship-line[hidden], .mr-cart-tax-line[hidden], .mr-cart-grand-line[hidden] { display: none; }
 .mr-cart-ship-line span, .mr-cart-grand-line span:first-child { font-size: 14px; }
 .mr-cart-grand-line { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); }
 .mr-cart-grand { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--rose); }

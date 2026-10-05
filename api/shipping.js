@@ -31,6 +31,8 @@ module.exports = async function handler(req, res) {
       ok: true,
       source: quote.source,
       subtotal: quote.subtotal,
+      taxRate: quote.taxRate,
+      taxApplies: quote.taxApplies,
       options: quote.options,
       note: quote.note
     });
