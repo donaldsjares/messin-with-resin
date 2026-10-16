@@ -121,7 +121,16 @@
     itemsCol.appendChild(elm('div', 'ad-order-h', 'Items'));
     var ul = elm('ul', 'ad-order-items');
     (o.items || []).forEach(function (it) {
-      ul.appendChild(elm('li', null, (it.qty || 1) + ' × ' + (it.name || it.id) + ' — ' + money((it.price || 0) * (it.qty || 1))));
+      var li = elm('li', null, (it.qty || 1) + ' × ' + (it.name || it.id) + ' — ' + money((it.price || 0) * (it.qty || 1)));
+      if (it.options && typeof it.options === 'object') {
+        var keys = Object.keys(it.options);
+        if (keys.length) {
+          var opts = elm('div', 'ad-order-item-opts');
+          keys.forEach(function (k) { opts.appendChild(elm('span', null, k + ': ' + it.options[k])); });
+          li.appendChild(opts);
+        }
+      }
+      ul.appendChild(li);
     });
     if (!(o.items || []).length) ul.appendChild(elm('li', 'ad-order-muted', 'No line items recorded'));
     itemsCol.appendChild(ul);
