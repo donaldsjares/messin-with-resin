@@ -654,7 +654,7 @@
     if (cartCount() === 0) return;
 
     var items = Object.keys(cart).map(function (k) {
-      return { id: cart[k].id, qty: cart[k].qty };
+      return { id: cart[k].id, qty: cart[k].qty, options: cart[k].options || {} };
     });
 
     els.shipEstimate.disabled = true;
@@ -763,7 +763,7 @@
       return;
     }
     var items = Object.keys(cart).map(function (k) {
-      return { id: cart[k].id, qty: cart[k].qty };
+      return { id: cart[k].id, qty: cart[k].qty, options: cart[k].options || {} };
     });
     var chosen = shipQuote.options[shipQuote.selected] || shipQuote.options[0];
 

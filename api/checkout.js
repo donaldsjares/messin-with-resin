@@ -18,6 +18,13 @@ var orders = require('../lib/orders');
 
 function cents(n) { return Math.round(Number(n) * 100); }
 
+/* "Color: Blue · Size: Large" from the sanitized options map (for the Stripe
+ * line-item description). */
+function optionsText(options) {
+  if (!options || typeof options !== 'object') return '';
+  return Object.keys(options).map(function (k) { return k + ': ' + options[k]; }).join(' · ');
+}
+
 function baseUrl(req) {
   var proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
   var host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -89,12 +96,15 @@ module.exports = async function handler(req, res) {
   }
 
   var lineItems = quote.lineItems.map(function (li) {
+    var productData = { name: li.name };
+    var desc = optionsText(li.options);
+    if (desc) productData.description = desc;
     return {
       quantity: li.qty,
       price_data: {
         currency: 'usd',
         unit_amount: cents(li.price),
-        product_data: { name: li.name }
+        product_data: productData
       }
     };
   });
