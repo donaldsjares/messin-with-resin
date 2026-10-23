@@ -27,7 +27,12 @@ function readRaw(req) {
 
 function customerFrom(session) {
   var cd = session.customer_details || {};
-  var ship = session.shipping_details || session.shipping || {};
+  // Stripe moved the collected shipping address from the top-level
+  // `shipping_details` to `collected_information.shipping_details` (API
+  // 2025-02-24 / removed top-level 2025-03-31). Read the new location first,
+  // then fall back to the legacy fields; last resort is the billing address.
+  var collected = session.collected_information || {};
+  var ship = collected.shipping_details || session.shipping_details || session.shipping || {};
   return {
     name: cd.name || ship.name || '',
     email: cd.email || '',
